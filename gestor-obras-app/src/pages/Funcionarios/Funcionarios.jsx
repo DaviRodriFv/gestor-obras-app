@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { UserPlus, Pencil, Trash2, Users } from "lucide-react";
+import { UserPlus, Pencil, Trash2, Users, Loader2 } from "lucide-react";
 import { Button } from "../../components/ui/button";
 import { Input } from "../../components/ui/input";
 import { Label } from "../../components/ui/label";
@@ -21,27 +21,25 @@ import {
   TableRow,
 } from "../../components/ui/table";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "../../components/ui/card";
+import { useFuncionarios } from "../../hooks/useFuncionarios";
 
 const ROLES = [
-  { value: "admin", label: "Administrador" },
-  { value: "equipe", label: "Equipe" },
+  { value: "ADMINISTRADOR", label: "Administrador" },
+  { value: "EQUIPE", label: "Equipe" },
 ];
 
-const initialFuncionarios = [
-  { id: 1, nome: "Carlos Silva", email: "carlos@exemplo.com", cargo: "admin" },
-  { id: 2, nome: "Ana Pereira", email: "ana@exemplo.com", cargo: "equipe" },
-];
-
-const emptyForm = { nome: "", email: "", cargo: "equipe" };
+const emptyForm = { nome: "", email: "", senha: "", cargo: "EQUIPE", telefone: "", ativo: true };
 
 export default function Funcionarios() {
-  const [funcionarios, setFuncionarios] = useState(initialFuncionarios);
+  const { funcionarios, loading, error, criar, atualizar, deletar } = useFuncionarios();
+
   const [dialogOpen, setDialogOpen] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [form, setForm] = useState(emptyForm);
   const [editingId, setEditingId] = useState(null);
   const [toDeleteId, setToDeleteId] = useState(null);
   const [formError, setFormError] = useState("");
+  const [saving, setSaving] = useState(false);
 
   function openCreate() {
     setForm(emptyForm);
@@ -51,7 +49,14 @@ export default function Funcionarios() {
   }
 
   function openEdit(func) {
-    setForm({ nome: func.nome, email: func.email, cargo: func.cargo });
+    setForm({
+      nome: func.nome,
+      email: func.email,
+      senha: "",
+      cargo: func.cargo,
+      telefone: func.telefone ?? "",
+      ativo: func.ativo ?? true,
+    });
     setEditingId(func.id);
     setFormError("");
     setDialogOpen(true);
@@ -62,25 +67,42 @@ export default function Funcionarios() {
     setDeleteDialogOpen(true);
   }
 
-  function handleSave() {
+  async function handleSave() {
     if (!form.nome.trim() || !form.email.trim()) {
       setFormError("Nome e e-mail são obrigatórios.");
       return;
     }
-    if (editingId !== null) {
-      setFuncionarios((prev) =>
-        prev.map((f) => (f.id === editingId ? { ...f, ...form } : f))
-      );
-    } else {
-      const newId = Date.now();
-      setFuncionarios((prev) => [...prev, { id: newId, ...form }]);
+    if (editingId === null && !form.senha.trim()) {
+      setFormError("Senha é obrigatória para novo funcionário.");
+      return;
     }
-    setDialogOpen(false);
+    setSaving(true);
+    setFormError("");
+    try {
+      const payload = { ...form };
+      if (editingId !== null && !payload.senha) delete payload.senha;
+
+      if (editingId !== null) {
+        await atualizar(editingId, payload);
+      } else {
+        await criar(payload);
+      }
+      setDialogOpen(false);
+    } catch {
+      setFormError("Erro ao salvar. Tente novamente.");
+    } finally {
+      setSaving(false);
+    }
   }
 
-  function handleDelete() {
-    setFuncionarios((prev) => prev.filter((f) => f.id !== toDeleteId));
-    setDeleteDialogOpen(false);
+  async function handleDelete() {
+    try {
+      await deletar(toDeleteId);
+    } catch {
+      // silently ignore
+    } finally {
+      setDeleteDialogOpen(false);
+    }
   }
 
   return (
@@ -105,7 +127,16 @@ export default function Funcionarios() {
           <CardDescription>{funcionarios.length} funcionário(s) cadastrado(s)</CardDescription>
         </CardHeader>
         <CardContent className="p-0">
-          {funcionarios.length === 0 ? (
+          {loading ? (
+            <div className="flex items-center justify-center py-16 text-muted-foreground gap-2">
+              <Loader2 className="w-5 h-5 animate-spin" />
+              <span className="text-sm">Carregando...</span>
+            </div>
+          ) : error ? (
+            <div className="flex items-center justify-center py-16 text-destructive text-sm">
+              {error}
+            </div>
+          ) : funcionarios.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-16 text-muted-foreground gap-2">
               <Users className="w-10 h-10 opacity-30" />
               <p className="text-sm">Nenhum funcionário cadastrado.</p>
@@ -116,7 +147,9 @@ export default function Funcionarios() {
                 <TableRow>
                   <TableHead>Nome</TableHead>
                   <TableHead>E-mail</TableHead>
+                  <TableHead>Telefone</TableHead>
                   <TableHead>Cargo</TableHead>
+                  <TableHead>Status</TableHead>
                   <TableHead className="text-right">Ações</TableHead>
                 </TableRow>
               </TableHeader>
@@ -125,9 +158,15 @@ export default function Funcionarios() {
                   <TableRow key={func.id}>
                     <TableCell className="font-medium">{func.nome}</TableCell>
                     <TableCell className="text-muted-foreground">{func.email}</TableCell>
+                    <TableCell className="text-muted-foreground">{func.telefone || "—"}</TableCell>
                     <TableCell>
-                      <Badge variant={func.cargo === "admin" ? "default" : "secondary"}>
-                        {func.cargo === "admin" ? "Administrador" : "Equipe"}
+                      <Badge variant={func.cargo === "ADMINISTRADOR" ? "default" : "secondary"}>
+                        {func.cargo === "ADMINISTRADOR" ? "Administrador" : "Equipe"}
+                      </Badge>
+                    </TableCell>
+                    <TableCell>
+                      <Badge variant={func.ativo ? "default" : "outline"}>
+                        {func.ativo ? "Ativo" : "Inativo"}
                       </Badge>
                     </TableCell>
                     <TableCell className="text-right">
@@ -185,6 +224,27 @@ export default function Funcionarios() {
               />
             </div>
             <div className="flex flex-col gap-1.5">
+              <Label htmlFor="senha">
+                Senha {editingId !== null && <span className="text-muted-foreground">(deixe em branco para manter)</span>}
+              </Label>
+              <Input
+                id="senha"
+                type="password"
+                placeholder="••••••••"
+                value={form.senha}
+                onChange={(e) => setForm((f) => ({ ...f, senha: e.target.value }))}
+              />
+            </div>
+            <div className="flex flex-col gap-1.5">
+              <Label htmlFor="telefone">Telefone</Label>
+              <Input
+                id="telefone"
+                placeholder="(00) 00000-0000"
+                value={form.telefone}
+                onChange={(e) => setForm((f) => ({ ...f, telefone: e.target.value }))}
+              />
+            </div>
+            <div className="flex flex-col gap-1.5">
               <Label htmlFor="cargo">Cargo</Label>
               <Select
                 id="cargo"
@@ -198,13 +258,25 @@ export default function Funcionarios() {
                 ))}
               </Select>
             </div>
+            <div className="flex flex-col gap-1.5">
+              <Label htmlFor="ativo">Status</Label>
+              <Select
+                id="ativo"
+                value={form.ativo ? "true" : "false"}
+                onChange={(e) => setForm((f) => ({ ...f, ativo: e.target.value === "true" }))}
+              >
+                <option value="true">Ativo</option>
+                <option value="false">Inativo</option>
+              </Select>
+            </div>
             {formError && <p className="text-sm text-destructive">{formError}</p>}
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setDialogOpen(false)}>
+            <Button variant="outline" onClick={() => setDialogOpen(false)} disabled={saving}>
               Cancelar
             </Button>
-            <Button onClick={handleSave}>
+            <Button onClick={handleSave} disabled={saving}>
+              {saving ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : null}
               {editingId !== null ? "Salvar" : "Criar"}
             </Button>
           </DialogFooter>

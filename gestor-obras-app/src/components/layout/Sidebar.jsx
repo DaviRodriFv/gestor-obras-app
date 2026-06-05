@@ -12,6 +12,7 @@ import {
   Building2,
 } from "lucide-react";
 import { cn } from "../../lib/utils";
+import { authService } from "../../services/authService";
 
 const navItems = [
   { to: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
@@ -27,8 +28,8 @@ const navItems = [
 export default function Sidebar() {
   const navigate = useNavigate();
 
-  function handleLogout() {
-    localStorage.removeItem("auth");
+  async function handleLogout() {
+    await authService.logout();
     navigate("/login");
   }
 
