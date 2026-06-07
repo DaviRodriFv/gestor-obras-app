@@ -20,7 +20,13 @@ import {
   TableHeader,
   TableRow,
 } from "../../components/ui/table";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "../../components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+} from "../../components/ui/card";
 import { useFuncionarios } from "../../hooks/useFuncionarios";
 
 const ROLES = [
@@ -28,22 +34,76 @@ const ROLES = [
   { value: "EQUIPE", label: "Equipe" },
 ];
 
-const emptyForm = { nome: "", email: "", senha: "", cargo: "EQUIPE", telefone: "", ativo: true };
+const emptyCreateForm = {
+  nome: "",
+  email: "",
+  senha: "",
+  confirmarSenha: "",
+  cargo: "EQUIPE",
+  telefone: "",
+};
+
+function validate(form, isEdit) {
+  const errors = {};
+
+  if (form.nome.trim().length < 3) {
+    errors.nome = "Nome deve ter no mínimo 3 caracteres.";
+  }
+
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email.trim())) {
+    errors.email = "Informe um e-mail válido.";
+  }
+
+  if (!isEdit) {
+    if (form.senha.length < 6) {
+      errors.senha = "Senha deve ter no mínimo 6 caracteres.";
+    }
+    if (form.senha !== form.confirmarSenha) {
+      errors.confirmarSenha = "As senhas não coincidem.";
+    }
+  } else if (form.senha) {
+    if (form.senha.length < 6) {
+      errors.senha = "Senha deve ter no mínimo 6 caracteres.";
+    }
+    if (form.senha !== form.confirmarSenha) {
+      errors.confirmarSenha = "As senhas não coincidem.";
+    }
+  }
+
+  return errors;
+}
+
+function parseApiError(err) {
+  const data = err?.response?.data;
+  if (!data) return "Erro ao salvar. Tente novamente.";
+  if (Array.isArray(data.errors) && data.errors.length > 0) {
+    return data.errors.map((e) => e.defaultMessage ?? String(e)).join(" ");
+  }
+  if (typeof data.message === "string") return data.message;
+  return "Erro ao salvar. Tente novamente.";
+}
 
 export default function Funcionarios() {
   const { funcionarios, loading, error, criar, atualizar, deletar } = useFuncionarios();
 
   const [dialogOpen, setDialogOpen] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
-  const [form, setForm] = useState(emptyForm);
+  const [form, setForm] = useState(emptyCreateForm);
   const [editingId, setEditingId] = useState(null);
   const [toDeleteId, setToDeleteId] = useState(null);
+  const [fieldErrors, setFieldErrors] = useState({});
   const [formError, setFormError] = useState("");
   const [saving, setSaving] = useState(false);
 
+  function setField(field, value) {
+    setForm((f) => ({ ...f, [field]: value }));
+    setFieldErrors((e) => ({ ...e, [field]: undefined }));
+  }
+
   function openCreate() {
-    setForm(emptyForm);
+    setForm(emptyCreateForm);
     setEditingId(null);
+    setFieldErrors({});
     setFormError("");
     setDialogOpen(true);
   }
@@ -53,11 +113,13 @@ export default function Funcionarios() {
       nome: func.nome,
       email: func.email,
       senha: "",
+      confirmarSenha: "",
       cargo: func.cargo,
       telefone: func.telefone ?? "",
       ativo: func.ativo ?? true,
     });
     setEditingId(func.id);
+    setFieldErrors({});
     setFormError("");
     setDialogOpen(true);
   }
@@ -68,28 +130,38 @@ export default function Funcionarios() {
   }
 
   async function handleSave() {
-    if (!form.nome.trim() || !form.email.trim()) {
-      setFormError("Nome e e-mail são obrigatórios.");
+    const isEdit = editingId !== null;
+    const errs = validate(form, isEdit);
+    if (Object.keys(errs).length > 0) {
+      setFieldErrors(errs);
       return;
     }
-    if (editingId === null && !form.senha.trim()) {
-      setFormError("Senha é obrigatória para novo funcionário.");
-      return;
-    }
+
     setSaving(true);
     setFormError("");
     try {
-      const payload = { ...form };
-      if (editingId !== null && !payload.senha) delete payload.senha;
-
-      if (editingId !== null) {
+      if (isEdit) {
+        const payload = {
+          nome: form.nome,
+          email: form.email,
+          cargo: form.cargo,
+          telefone: form.telefone,
+          ativo: form.ativo,
+        };
+        if (form.senha) payload.senha = form.senha;
         await atualizar(editingId, payload);
       } else {
-        await criar(payload);
+        await criar({
+          nome: form.nome,
+          email: form.email,
+          senha: form.senha,
+          cargo: form.cargo,
+          telefone: form.telefone,
+        });
       }
       setDialogOpen(false);
-    } catch {
-      setFormError("Erro ao salvar. Tente novamente.");
+    } catch (err) {
+      setFormError(parseApiError(err));
     } finally {
       setSaving(false);
     }
@@ -104,6 +176,8 @@ export default function Funcionarios() {
       setDeleteDialogOpen(false);
     }
   }
+
+  const isEdit = editingId !== null;
 
   return (
     <div className="p-8">
@@ -201,18 +275,25 @@ export default function Funcionarios() {
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
-            <DialogTitle>{editingId !== null ? "Editar Funcionário" : "Novo Funcionário"}</DialogTitle>
+            <DialogTitle>{isEdit ? "Editar Funcionário" : "Novo Funcionário"}</DialogTitle>
           </DialogHeader>
+
           <div className="flex flex-col gap-4 py-2">
+            {/* Nome */}
             <div className="flex flex-col gap-1.5">
               <Label htmlFor="nome">Nome</Label>
               <Input
                 id="nome"
                 placeholder="Nome completo"
                 value={form.nome}
-                onChange={(e) => setForm((f) => ({ ...f, nome: e.target.value }))}
+                onChange={(e) => setField("nome", e.target.value)}
               />
+              {fieldErrors.nome && (
+                <p className="text-xs text-destructive">{fieldErrors.nome}</p>
+              )}
             </div>
+
+            {/* E-mail */}
             <div className="flex flex-col gap-1.5">
               <Label htmlFor="email">E-mail</Label>
               <Input
@@ -220,36 +301,68 @@ export default function Funcionarios() {
                 type="email"
                 placeholder="email@exemplo.com"
                 value={form.email}
-                onChange={(e) => setForm((f) => ({ ...f, email: e.target.value }))}
+                onChange={(e) => setField("email", e.target.value)}
               />
+              {fieldErrors.email && (
+                <p className="text-xs text-destructive">{fieldErrors.email}</p>
+              )}
             </div>
+
+            {/* Senha */}
             <div className="flex flex-col gap-1.5">
               <Label htmlFor="senha">
-                Senha {editingId !== null && <span className="text-muted-foreground">(deixe em branco para manter)</span>}
+                Senha
+                {isEdit && (
+                  <span className="text-muted-foreground font-normal ml-1">
+                    (deixe em branco para manter)
+                  </span>
+                )}
               </Label>
               <Input
                 id="senha"
                 type="password"
                 placeholder="••••••••"
                 value={form.senha}
-                onChange={(e) => setForm((f) => ({ ...f, senha: e.target.value }))}
+                onChange={(e) => setField("senha", e.target.value)}
               />
+              {fieldErrors.senha && (
+                <p className="text-xs text-destructive">{fieldErrors.senha}</p>
+              )}
             </div>
+
+            {/* Confirmar Senha — sempre visível */}
+            <div className="flex flex-col gap-1.5">
+              <Label htmlFor="confirmarSenha">Confirmar Senha</Label>
+              <Input
+                id="confirmarSenha"
+                type="password"
+                placeholder="••••••••"
+                value={form.confirmarSenha}
+                onChange={(e) => setField("confirmarSenha", e.target.value)}
+              />
+              {fieldErrors.confirmarSenha && (
+                <p className="text-xs text-destructive">{fieldErrors.confirmarSenha}</p>
+              )}
+            </div>
+
+            {/* Telefone */}
             <div className="flex flex-col gap-1.5">
               <Label htmlFor="telefone">Telefone</Label>
               <Input
                 id="telefone"
                 placeholder="(00) 00000-0000"
                 value={form.telefone}
-                onChange={(e) => setForm((f) => ({ ...f, telefone: e.target.value }))}
+                onChange={(e) => setField("telefone", e.target.value)}
               />
             </div>
+
+            {/* Cargo */}
             <div className="flex flex-col gap-1.5">
               <Label htmlFor="cargo">Cargo</Label>
               <Select
                 id="cargo"
                 value={form.cargo}
-                onChange={(e) => setForm((f) => ({ ...f, cargo: e.target.value }))}
+                onChange={(e) => setField("cargo", e.target.value)}
               >
                 {ROLES.map((r) => (
                   <option key={r.value} value={r.value}>
@@ -258,26 +371,32 @@ export default function Funcionarios() {
                 ))}
               </Select>
             </div>
-            <div className="flex flex-col gap-1.5">
-              <Label htmlFor="ativo">Status</Label>
-              <Select
-                id="ativo"
-                value={form.ativo ? "true" : "false"}
-                onChange={(e) => setForm((f) => ({ ...f, ativo: e.target.value === "true" }))}
-              >
-                <option value="true">Ativo</option>
-                <option value="false">Inativo</option>
-              </Select>
-            </div>
+
+            {/* Status — somente na edição */}
+            {isEdit && (
+              <div className="flex flex-col gap-1.5">
+                <Label htmlFor="ativo">Status</Label>
+                <Select
+                  id="ativo"
+                  value={form.ativo ? "true" : "false"}
+                  onChange={(e) => setField("ativo", e.target.value === "true")}
+                >
+                  <option value="true">Ativo</option>
+                  <option value="false">Inativo</option>
+                </Select>
+              </div>
+            )}
+
             {formError && <p className="text-sm text-destructive">{formError}</p>}
           </div>
+
           <DialogFooter>
             <Button variant="outline" onClick={() => setDialogOpen(false)} disabled={saving}>
               Cancelar
             </Button>
             <Button onClick={handleSave} disabled={saving}>
-              {saving ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : null}
-              {editingId !== null ? "Salvar" : "Criar"}
+              {saving && <Loader2 className="w-4 h-4 animate-spin mr-2" />}
+              {isEdit ? "Salvar" : "Criar"}
             </Button>
           </DialogFooter>
         </DialogContent>
