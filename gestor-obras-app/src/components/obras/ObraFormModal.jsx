@@ -34,7 +34,8 @@ function validate(form) {
   if (!form.prazoConclusao) {
     errors.prazoConclusao = "Prazo de conclusão é obrigatório.";
   } else if (form.dataInicio && form.prazoConclusao < form.dataInicio) {
-    errors.prazoConclusao = "Prazo deve ser igual ou posterior à data de início.";
+    errors.prazoConclusao =
+      "Prazo deve ser igual ou posterior à data de início.";
   }
   return errors;
 }
@@ -50,8 +51,8 @@ export default function ObraFormModal({ open, obra, onClose, onSave }) {
 
   useEffect(() => {
     if (open) {
-      setErrors({});
       setApiError("");
+      setErrors({});
       if (obra) {
         setForm({
           nome: obra.nome ?? "",
@@ -84,13 +85,19 @@ export default function ObraFormModal({ open, obra, onClose, onSave }) {
       await onSave(form);
       onClose();
     } catch (err) {
-      setApiError(err?.response?.data?.message ?? "Erro ao salvar. Tente novamente.");
+      setApiError(
+        err?.response?.data?.message ?? "Erro ao salvar. Tente novamente.",
+      );
     } finally {
       setSaving(false);
     }
   }
 
-  const title = isTerminal ? "Visualizar Obra" : isEdit ? "Editar Obra" : "Nova Obra";
+  const title = isTerminal
+    ? "Visualizar Obra"
+    : isEdit
+      ? "Editar Obra"
+      : "Nova Obra";
 
   return (
     <Dialog open={open} onOpenChange={(v) => !v && onClose()}>
@@ -102,8 +109,10 @@ export default function ObraFormModal({ open, obra, onClose, onSave }) {
         {isTerminal && (
           <p className="text-sm text-amber-700 bg-amber-50 border border-amber-200 rounded-md px-3 py-2">
             Esta obra está em estado{" "}
-            <strong>{obra.status === "CONCLUIDA" ? "Concluída" : "Cancelada"}</strong> e não pode
-            ser editada.
+            <strong>
+              {obra.status === "CONCLUIDA" ? "Concluída" : "Cancelada"}
+            </strong>{" "}
+            e não pode ser editada.
           </p>
         )}
 
@@ -117,7 +126,9 @@ export default function ObraFormModal({ open, obra, onClose, onSave }) {
               onChange={(e) => setField("nome", e.target.value)}
               disabled={isTerminal}
             />
-            {errors.nome && <p className="text-xs text-destructive">{errors.nome}</p>}
+            {errors.nome && (
+              <p className="text-xs text-destructive">{errors.nome}</p>
+            )}
           </div>
 
           <div className="flex flex-col gap-1.5">
@@ -129,7 +140,9 @@ export default function ObraFormModal({ open, obra, onClose, onSave }) {
               onChange={(e) => setField("endereco", e.target.value)}
               disabled={isTerminal}
             />
-            {errors.endereco && <p className="text-xs text-destructive">{errors.endereco}</p>}
+            {errors.endereco && (
+              <p className="text-xs text-destructive">{errors.endereco}</p>
+            )}
           </div>
 
           <div className="flex flex-col gap-1.5">
@@ -141,7 +154,9 @@ export default function ObraFormModal({ open, obra, onClose, onSave }) {
               onChange={(e) => setField("cliente", e.target.value)}
               disabled={isTerminal}
             />
-            {errors.cliente && <p className="text-xs text-destructive">{errors.cliente}</p>}
+            {errors.cliente && (
+              <p className="text-xs text-destructive">{errors.cliente}</p>
+            )}
           </div>
 
           <div className="grid grid-cols-2 gap-4">
@@ -168,7 +183,9 @@ export default function ObraFormModal({ open, obra, onClose, onSave }) {
                 disabled={isTerminal}
               />
               {errors.prazoConclusao && (
-                <p className="text-xs text-destructive">{errors.prazoConclusao}</p>
+                <p className="text-xs text-destructive">
+                  {errors.prazoConclusao}
+                </p>
               )}
             </div>
           </div>
