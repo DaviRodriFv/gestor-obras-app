@@ -4,6 +4,7 @@ import Login from "../pages/Login/Login";
 import Dashboard from "../pages/Dashboard/Dashboard";
 import Funcionarios from "../pages/Funcionarios/Funcionarios";
 import Placeholder from "../pages/Placeholder/Placeholder";
+import ObrasPage from "../components/obras/ObrasPage";
 
 export default function AppRoutes() {
   return (
@@ -12,7 +13,7 @@ export default function AppRoutes() {
       <Route path="/" element={<Layout />}>
         <Route index element={<Navigate to="/dashboard" replace />} />
         <Route path="dashboard" element={<Dashboard />} />
-        <Route path="obras" element={<Placeholder title="Obras" />} />
+        <Route path="obras" element={<ObrasPage />} />
         <Route path="cronograma" element={<Placeholder title="Cronograma" />} />
         <Route path="financeiro" element={<Placeholder title="Financeiro" />} />
         <Route path="custos" element={<Placeholder title="Custos" />} />

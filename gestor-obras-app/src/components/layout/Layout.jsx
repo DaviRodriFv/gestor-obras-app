@@ -1,8 +1,9 @@
 import { Outlet, Navigate } from "react-router-dom";
 import Sidebar from "./Sidebar";
+import { authService } from "../../services/authService";
 
 export default function Layout() {
-  const isAuth = localStorage.getItem("auth");
+  const isAuth = authService.getUser();
 
   if (!isAuth) {
     return <Navigate to="/login" replace />;

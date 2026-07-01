@@ -5,6 +5,7 @@ import { Button } from "../../components/ui/button";
 import { Input } from "../../components/ui/input";
 import { Label } from "../../components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "../../components/ui/card";
+import { authService } from "../../services/authService";
 
 export default function Login() {
   const navigate = useNavigate();
@@ -12,16 +13,24 @@ export default function Login() {
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
 
-  function handleSubmit(e) {
+  async function handleSubmit(e) {
     e.preventDefault();
     if (!email || !password) {
       setError("Preencha todos os campos.");
       return;
     }
-    // Simulação de login
-    localStorage.setItem("auth", "true");
-    navigate("/dashboard");
+    setLoading(true);
+    setError("");
+    try {
+      await authService.login(email, password);
+      navigate("/dashboard");
+    } catch {
+      setError("E-mail ou senha inválidos.");
+    } finally {
+      setLoading(false);
+    }
   }
 
   return (
@@ -82,8 +91,8 @@ export default function Login() {
                 <p className="text-sm text-destructive">{error}</p>
               )}
 
-              <Button type="submit" className="w-full mt-2">
-                Entrar
+              <Button type="submit" className="w-full mt-2" disabled={loading}>
+                {loading ? "Entrando..." : "Entrar"}
               </Button>
             </form>
           </CardContent>
