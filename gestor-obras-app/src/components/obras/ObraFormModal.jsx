@@ -118,7 +118,7 @@ export default function ObraFormModal({ open, obra, onClose, onSave }) {
 
         <div className="flex flex-col gap-4 py-2">
           <div className="flex flex-col gap-1.5">
-            <Label htmlFor="nome">Nome da Obra</Label>
+            <Label htmlFor="nome">Nome da Obra <span className="text-destructive">*</span></Label>
             <Input
               id="nome"
               placeholder="Ex.: Residência Família Santos"
@@ -132,7 +132,7 @@ export default function ObraFormModal({ open, obra, onClose, onSave }) {
           </div>
 
           <div className="flex flex-col gap-1.5">
-            <Label htmlFor="endereco">Endereço</Label>
+            <Label htmlFor="endereco">Endereço <span className="text-destructive">*</span></Label>
             <Input
               id="endereco"
               placeholder="Rua, número, bairro, cidade"
@@ -146,7 +146,7 @@ export default function ObraFormModal({ open, obra, onClose, onSave }) {
           </div>
 
           <div className="flex flex-col gap-1.5">
-            <Label htmlFor="cliente">Cliente</Label>
+            <Label htmlFor="cliente">Cliente <span className="text-destructive">*</span></Label>
             <Input
               id="cliente"
               placeholder="Nome do cliente"
@@ -161,7 +161,7 @@ export default function ObraFormModal({ open, obra, onClose, onSave }) {
 
           <div className="grid grid-cols-2 gap-4">
             <div className="flex flex-col gap-1.5">
-              <Label htmlFor="dataInicio">Data de Início</Label>
+              <Label htmlFor="dataInicio">Data de Início <span className="text-destructive">*</span></Label>
               <Input
                 id="dataInicio"
                 type="date"
@@ -174,7 +174,7 @@ export default function ObraFormModal({ open, obra, onClose, onSave }) {
               )}
             </div>
             <div className="flex flex-col gap-1.5">
-              <Label htmlFor="prazoConclusao">Prazo de Conclusão</Label>
+              <Label htmlFor="prazoConclusao">Prazo de Conclusão <span className="text-destructive">*</span></Label>
               <Input
                 id="prazoConclusao"
                 type="date"

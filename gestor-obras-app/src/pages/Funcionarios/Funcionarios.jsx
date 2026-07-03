@@ -281,7 +281,7 @@ export default function Funcionarios() {
           <div className="flex flex-col gap-4 py-2">
             {/* Nome */}
             <div className="flex flex-col gap-1.5">
-              <Label htmlFor="nome">Nome</Label>
+              <Label htmlFor="nome">Nome <span className="text-destructive">*</span></Label>
               <Input
                 id="nome"
                 placeholder="Nome completo"
@@ -295,7 +295,7 @@ export default function Funcionarios() {
 
             {/* E-mail */}
             <div className="flex flex-col gap-1.5">
-              <Label htmlFor="email">E-mail</Label>
+              <Label htmlFor="email">E-mail <span className="text-destructive">*</span></Label>
               <Input
                 id="email"
                 type="email"
@@ -312,6 +312,7 @@ export default function Funcionarios() {
             <div className="flex flex-col gap-1.5">
               <Label htmlFor="senha">
                 Senha
+                {!isEdit && <span className="text-destructive ml-0.5">*</span>}
                 {isEdit && (
                   <span className="text-muted-foreground font-normal ml-1">
                     (deixe em branco para manter)
@@ -332,7 +333,7 @@ export default function Funcionarios() {
 
             {/* Confirmar Senha — sempre visível */}
             <div className="flex flex-col gap-1.5">
-              <Label htmlFor="confirmarSenha">Confirmar Senha</Label>
+              <Label htmlFor="confirmarSenha">Confirmar Senha {!isEdit && <span className="text-destructive">*</span>}</Label>
               <Input
                 id="confirmarSenha"
                 type="password"
