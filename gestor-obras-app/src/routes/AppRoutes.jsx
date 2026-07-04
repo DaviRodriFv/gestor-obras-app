@@ -1,6 +1,7 @@
 import { Routes, Route, Navigate } from "react-router-dom";
 import Layout from "../components/layout/Layout";
 import Login from "../pages/Login/Login";
+import RedefinirSenha from "../pages/RedefinirSenha/RedefinirSenha";
 import Dashboard from "../pages/Dashboard/Dashboard";
 import Funcionarios from "../pages/Funcionarios/Funcionarios";
 import Placeholder from "../pages/Placeholder/Placeholder";
@@ -10,6 +11,7 @@ export default function AppRoutes() {
   return (
     <Routes>
       <Route path="/login" element={<Login />} />
+      <Route path="/redefinir-senha" element={<RedefinirSenha />} />
       <Route path="/" element={<Layout />}>
         <Route index element={<Navigate to="/dashboard" replace />} />
         <Route path="dashboard" element={<Dashboard />} />

@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import { Building2, Eye, EyeOff } from "lucide-react";
 import { Button } from "../../components/ui/button";
 import { Input } from "../../components/ui/input";
@@ -94,6 +94,15 @@ export default function Login() {
               <Button type="submit" className="w-full mt-2" disabled={loading}>
                 {loading ? "Entrando..." : "Entrar"}
               </Button>
+
+              <div className="text-center">
+                <Link
+                  to="/redefinir-senha"
+                  className="text-sm text-muted-foreground hover:text-foreground transition-colors"
+                >
+                  Esqueci minha senha
+                </Link>
+              </div>
             </form>
           </CardContent>
         </Card>
