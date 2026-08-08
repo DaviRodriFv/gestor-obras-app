@@ -1,27 +1,31 @@
+@import url("https://fonts.googleapis.com/css?family=Poppins:300,400,500,600,700&display=swap");
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 @layer base {
   :root {
-    --background: 0 0% 100%;
-    --foreground: 222.2 84% 4.9%;
-    --card: 0 0% 100%;
-    --card-foreground: 222.2 84% 4.9%;
-    --primary: 221 83% 53%;
-    --primary-foreground: 0 0% 100%;
-    --secondary: 210 40% 96.1%;
-    --secondary-foreground: 222.2 47.4% 11.2%;
-    --muted: 210 40% 96.1%;
-    --muted-foreground: 215.4 16.3% 46.9%;
-    --accent: 210 40% 96.1%;
-    --accent-foreground: 222.2 47.4% 11.2%;
-    --destructive: 0 84.2% 60.2%;
+    /* Paleta inspirada na identidade da André Paulino Negócios Imobiliários:
+       chumbo escuro + prata metálico, no estilo do site institucional. */
+    --background: 345 6% 13%;
+    --foreground: 0 0% 96%;
+    --card: 345 6% 17%;
+    --card-foreground: 0 0% 96%;
+    --primary: 0 3% 76%;
+    --primary-foreground: 345 6% 13%;
+    --secondary: 345 5% 22%;
+    --secondary-foreground: 0 0% 96%;
+    --muted: 345 5% 19%;
+    --muted-foreground: 0 1% 66%;
+    --accent: 345 5% 24%;
+    --accent-foreground: 0 0% 98%;
+    --destructive: 357 88% 51%;
     --destructive-foreground: 0 0% 100%;
-    --border: 214.3 31.8% 91.4%;
-    --input: 214.3 31.8% 91.4%;
-    --ring: 221 83% 53%;
-    --radius: 0.5rem;
+    --border: 345 5% 24%;
+    --input: 345 5% 24%;
+    --ring: 0 3% 76%;
+    --radius: 0.3125rem;
   }
 }
 
@@ -31,7 +35,7 @@
   }
   body {
     @apply bg-background text-foreground;
-    font-family: system-ui, -apple-system, sans-serif;
+    font-family: "Poppins", Helvetica, sans-serif;
     margin: 0;
   }
   #root {

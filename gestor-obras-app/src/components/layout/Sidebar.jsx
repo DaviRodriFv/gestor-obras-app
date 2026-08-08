@@ -34,10 +34,10 @@ export default function Sidebar() {
   }
 
   return (
-    <aside className="w-60 min-h-screen bg-white border-r border-border flex flex-col">
+    <aside className="w-60 min-h-screen bg-card border-r border-border flex flex-col">
       <div className="flex items-center gap-3 px-5 py-5 border-b border-border">
         <div className="w-9 h-9 rounded-lg bg-primary flex items-center justify-center">
-          <Building2 className="w-5 h-5 text-white" />
+          <Building2 className="w-5 h-5 text-primary-foreground" />
         </div>
         <div className="leading-tight">
           <p className="text-sm font-semibold text-foreground">AP Negócios</p>

@@ -34,12 +34,12 @@ export default function Login() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
+    <div className="min-h-screen bg-background flex items-center justify-center p-4">
       <div className="w-full max-w-md">
         <div className="flex justify-center mb-8">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-xl bg-primary flex items-center justify-center">
-              <Building2 className="w-6 h-6 text-white" />
+              <Building2 className="w-6 h-6 text-primary-foreground" />
             </div>
             <div>
               <p className="text-lg font-bold text-foreground leading-none">AP Negócios</p>
