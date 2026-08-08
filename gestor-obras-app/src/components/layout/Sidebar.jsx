@@ -15,14 +15,14 @@ import { cn } from "../../lib/utils";
 import { authService } from "../../services/authService";
 
 const navItems = [
-  { to: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
-  { to: "/obras", label: "Obras", icon: HardHat },
-  { to: "/cronograma", label: "Cronograma", icon: CalendarDays },
-  { to: "/financeiro", label: "Financeiro", icon: DollarSign },
-  { to: "/custos", label: "Custos", icon: Receipt },
-  { to: "/fornecedores", label: "Fornecedores", icon: Truck },
-  { to: "/relatorios", label: "Relatórios", icon: FileBarChart },
-  { to: "/funcionarios", label: "Funcionários", icon: Users },
+  { to: "/dashboard", label: "Dashboard", icon: LayoutDashboard, roles: ["Equipe"] },
+  { to: "/obras", label: "Obras", icon: HardHat, roles: ["Equipe"] },
+  { to: "/cronograma", label: "Cronograma", icon: CalendarDays, roles: ["Equipe"] },
+  { to: "/financeiro", label: "Financeiro", icon: DollarSign, roles: ["Equipe", "Proprietario"] },
+  { to: "/custos", label: "Custos", icon: Receipt, roles: ["Equipe"] },
+  { to: "/fornecedores", label: "Fornecedores", icon: Truck, roles: ["Equipe"] },
+  { to: "/relatorios", label: "Relatórios", icon: FileBarChart, roles: ["Equipe"] },
+  { to: "/funcionarios", label: "Funcionários", icon: Users, roles: ["Equipe"] },
 ];
 
 export default function Sidebar() {
@@ -46,23 +46,30 @@ export default function Sidebar() {
       </div>
 
       <nav className="flex-1 py-4 px-3 flex flex-col gap-1">
-        {navItems.map(({ to, label, icon: Icon }) => (
-          <NavLink
-            key={to}
-            to={to}
-            className={({ isActive }) =>
-              cn(
-                "flex items-center gap-3 px-3 py-2.5 rounded-md text-sm font-medium transition-colors",
-                isActive
-                  ? "bg-primary/10 text-primary"
-                  : "text-muted-foreground hover:bg-muted hover:text-foreground"
-              )
-            }
-          >
-            <Icon className="w-4 h-4 shrink-0" />
-            {label}
-          </NavLink>
-        ))}
+        {navItems
+          .filter((item) => {
+            const user = authService.getUser();
+            const role = user?.role;
+            if (!role) return false;
+            return item.roles?.includes(role);
+          })
+          .map(({ to, label, icon: Icon }) => (
+            <NavLink
+              key={to}
+              to={to}
+              className={({ isActive }) =>
+                cn(
+                  "flex items-center gap-3 px-3 py-2.5 rounded-md text-sm font-medium transition-colors",
+                  isActive
+                    ? "bg-primary/10 text-primary"
+                    : "text-muted-foreground hover:bg-muted hover:text-foreground"
+                )
+              }
+            >
+              <Icon className="w-4 h-4 shrink-0" />
+              {label}
+            </NavLink>
+          ))}
       </nav>
 
       <div className="p-3 border-t border-border">
