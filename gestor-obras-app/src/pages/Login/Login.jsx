@@ -1,11 +1,12 @@
 import { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
-import { Building2, Eye, EyeOff } from "lucide-react";
+import { Eye, EyeOff } from "lucide-react";
 import { Button } from "../../components/ui/button";
 import { Input } from "../../components/ui/input";
 import { Label } from "../../components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "../../components/ui/card";
 import { authService } from "../../services/authService";
+import logo from "../../assets/logo.png";
 
 export default function Login() {
   const navigate = useNavigate();
@@ -36,16 +37,9 @@ export default function Login() {
   return (
     <div className="min-h-screen bg-background flex items-center justify-center p-4">
       <div className="w-full max-w-md">
-        <div className="flex justify-center mb-8">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-primary flex items-center justify-center">
-              <Building2 className="w-6 h-6 text-primary-foreground" />
-            </div>
-            <div>
-              <p className="text-lg font-bold text-foreground leading-none">AP Negócios</p>
-              <p className="text-xs text-muted-foreground">Gestor de Obras</p>
-            </div>
-          </div>
+        <div className="flex flex-col items-center gap-2 mb-8">
+          <img src={logo} alt="André Paulino Negócios Imobiliários" className="w-48 h-auto" />
+          <p className="text-xs text-muted-foreground tracking-wide">Gestor de Obras</p>
         </div>
 
         <Card>

@@ -1,5 +1,5 @@
 import { Outlet, Navigate } from "react-router-dom";
-import Sidebar from "./Sidebar";
+import Navbar from "./Navbar";
 import { authService } from "../../services/authService";
 
 export default function Layout() {
@@ -10,8 +10,8 @@ export default function Layout() {
   }
 
   return (
-    <div className="flex min-h-screen bg-background">
-      <Sidebar />
+    <div className="flex min-h-screen flex-col bg-background">
+      <Navbar />
       <main className="flex-1 overflow-auto">
         <Outlet />
       </main>

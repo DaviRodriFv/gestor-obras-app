@@ -1,22 +1,21 @@
 import { useState, useEffect } from "react";
 import { Search, HardHat, Loader2, RefreshCw, Plus } from "lucide-react";
-import { cn } from "../../lib/utils";
 import { useObras } from "../../hooks/useObras";
 import { Button } from "../ui/button";
 import { Input } from "../ui/input";
 import { Card, CardContent } from "../ui/card";
+import { CheckboxFilterDropdown } from "../ui/checkbox-filter-dropdown";
 import ObrasTable from "./ObrasTable";
 import ObraFormModal from "./ObraFormModal";
 import ObraDetailsModal from "./ObraDetailsModal";
 import AlterarStatusModal from "./AlterarStatusModal";
 import ConfirmDeleteModal from "./ConfirmDeleteModal";
 
-const FILTROS = [
-  { label: "Todas", value: "" },
-  { label: "Em Andamento", value: "EM_ANDAMENTO" },
-  { label: "Pausada", value: "PAUSADA" },
-  { label: "Concluída", value: "CONCLUIDA" },
-  { label: "Cancelada", value: "CANCELADA" },
+const STATUS_OPTIONS = [
+  { value: "EM_ANDAMENTO", label: "Em Andamento" },
+  { value: "PAUSADA", label: "Pausada" },
+  { value: "CONCLUIDA", label: "Concluída" },
+  { value: "CANCELADA", label: "Cancelada" },
 ];
 
 export default function ObrasPage() {
@@ -25,8 +24,8 @@ export default function ObrasPage() {
     loading,
     error,
     setBusca,
-    filtroStatus,
-    setFiltroStatus,
+    filtrosStatus,
+    setFiltrosStatus,
     criar,
     atualizar,
     alterarStatus,
@@ -88,6 +87,12 @@ export default function ObrasPage() {
     setSelectedObra(null);
   }
 
+  function handleToggleStatus(value) {
+    setFiltrosStatus((prev) =>
+      prev.includes(value) ? prev.filter((v) => v !== value) : [...prev, value]
+    );
+  }
+
   return (
     <div className="p-8">
       {/* Cabeçalho */}
@@ -102,8 +107,8 @@ export default function ObrasPage() {
         </Button>
       </div>
 
-      {/* Barra de busca */}
-      <div className="flex items-center gap-4 mb-4">
+      {/* Busca e filtros */}
+      <div className="flex items-center gap-4 mb-5">
         <div className="relative flex-1 max-w-sm">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground pointer-events-none" />
           <Input
@@ -113,24 +118,13 @@ export default function ObrasPage() {
             onChange={(e) => setBuscaInput(e.target.value)}
           />
         </div>
-      </div>
-
-      {/* Filtros por status */}
-      <div className="flex items-center gap-1 mb-5">
-        {FILTROS.map((f) => (
-          <button
-            key={f.value}
-            onClick={() => setFiltroStatus(f.value)}
-            className={cn(
-              "px-3 py-1.5 text-sm rounded-md transition-colors font-medium",
-              filtroStatus === f.value
-                ? "bg-primary text-primary-foreground"
-                : "text-muted-foreground hover:bg-muted hover:text-foreground"
-            )}
-          >
-            {f.label}
-          </button>
-        ))}
+        <CheckboxFilterDropdown
+          label="Status"
+          options={STATUS_OPTIONS}
+          selected={filtrosStatus}
+          onToggle={handleToggleStatus}
+          className="w-56"
+        />
       </div>
 
       {/* Tabela / estados */}
@@ -158,7 +152,7 @@ export default function ObrasPage() {
             <div className="flex flex-col items-center justify-center py-16 text-muted-foreground gap-2">
               <HardHat className="w-10 h-10 opacity-30" />
               <p className="text-sm">
-                {buscaInput || filtroStatus
+                {buscaInput || filtrosStatus.length > 0
                   ? "Nenhuma obra encontrada para os filtros aplicados."
                   : "Nenhuma obra cadastrada."}
               </p>

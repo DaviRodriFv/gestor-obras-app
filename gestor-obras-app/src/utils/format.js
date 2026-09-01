@@ -4,6 +4,11 @@ export function formatDate(dateStr) {
   return `${day}/${month}/${year}`;
 }
 
+export function formatCurrency(value) {
+  if (value === null || value === undefined || value === "") return "—";
+  return Number(value).toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
+}
+
 export const STATUS_LABELS = {
   EM_ANDAMENTO: "Em Andamento",
   PAUSADA: "Pausada",

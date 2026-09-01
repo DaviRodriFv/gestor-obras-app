@@ -40,11 +40,27 @@ Usuário logado com conta ativa de status administrador. Para vincular fornecedo
 2. Aciona excluir — modal de confirmação.
 3. Ao confirmar, fornecedor é removido do banco, mas os lançamentos financeiros já registrados permanecem preservados.
 
+### Registrar orçamento do fornecedor
+1. Administrador seleciona o fornecedor e abre a aba/seção de orçamentos.
+2. Aciona "novo orçamento" e seleciona a obra à qual o orçamento se refere.
+3. Informa os dados do orçamento, podendo combinar:
+   - **Tabela de itens**: um ou mais materiais/serviços, cada um com descrição, quantidade e preço unitário — o sistema calcula o subtotal de cada item e o valor total do orçamento automaticamente;
+   - **Documento anexo**: upload de um arquivo PDF (proposta comercial do fornecedor).
+   - É obrigatório informar ao menos um dos dois (tabela de itens ou arquivo PDF). Caso não haja itens detalhados, o valor total deve ser informado manualmente.
+4. Confirma o cadastro — sistema salva o orçamento vinculado ao fornecedor e à obra.
+
+### Consultar / editar / excluir orçamento
+1. Administrador entra na área de orçamentos do fornecedor.
+2. Visualiza a lista de orçamentos (obra vinculada, data, valor total, se possui anexo).
+3. Pode abrir um orçamento para ver os itens detalhados e baixar o arquivo PDF anexado, quando houver.
+4. Pode editar os itens, a obra vinculada, a data ou substituir o arquivo anexado — o valor total é recalculado quando a tabela de itens é alterada.
+5. Pode excluir o orçamento, com confirmação em modal.
+
 ## Cenários chave
-Cadastrar fornecedor com dados obrigatórios; consultar listagem com filtro por tipo de serviço; editar fornecedor existente; vincular fornecedor a obra; excluir fornecedor.
+Cadastrar fornecedor com dados obrigatórios; consultar listagem com filtro por tipo de serviço; editar fornecedor existente; vincular fornecedor a obra; excluir fornecedor; registrar orçamento de um fornecedor para uma obra, com tabela de itens (material/quantidade/preço) e/ou PDF anexado.
 
 ## Condições posteriores
-Fornecedores cadastrados ficam disponíveis para consulta e vinculação nos lançamentos de custos das obras, e no relatório de fornecedores.
+Fornecedores cadastrados ficam disponíveis para consulta e vinculação nos lançamentos de custos das obras, e no relatório de fornecedores. Orçamentos cadastrados ficam disponíveis para consulta na obra e no fornecedor, servindo de base para a comparação entre orçado e gasto real.
 
 ## Pontos de extensão / requisitos especiais
 Não se aplica.

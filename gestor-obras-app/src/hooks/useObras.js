@@ -1,51 +1,56 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useMemo } from "react";
 import { obrasService } from "../services/obrasService";
 
 export function useObras() {
-  const [obras, setObras] = useState([]);
+  const [obrasRaw, setObrasRaw] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [busca, setBusca] = useState("");
-  const [filtroStatus, setFiltroStatus] = useState("");
+  const [filtrosStatus, setFiltrosStatus] = useState([]);
 
   const carregar = useCallback(async () => {
     setLoading(true);
     setError(null);
     try {
-      const data = await obrasService.listarObras({ busca, status: filtroStatus });
-      setObras(data);
+      const data = await obrasService.listarObras({ busca });
+      setObrasRaw(data);
     } catch {
       setError("Erro ao carregar obras. Tente novamente.");
     } finally {
       setLoading(false);
     }
-  }, [busca, filtroStatus]);
+  }, [busca]);
 
   useEffect(() => {
     carregar();
   }, [carregar]);
 
+  const obras = useMemo(() => {
+    if (filtrosStatus.length === 0) return obrasRaw;
+    return obrasRaw.filter((o) => filtrosStatus.includes(o.status));
+  }, [obrasRaw, filtrosStatus]);
+
   const criar = async (dto) => {
     const nova = await obrasService.criarObra(dto);
-    setObras((prev) => [...prev, nova]);
+    setObrasRaw((prev) => [...prev, nova]);
     return nova;
   };
 
   const atualizar = async (id, dto) => {
     const atualizada = await obrasService.atualizarObra(id, dto);
-    setObras((prev) => prev.map((o) => (o.id === id ? atualizada : o)));
+    setObrasRaw((prev) => prev.map((o) => (o.id === id ? atualizada : o)));
     return atualizada;
   };
 
   const alterarStatus = async (id, novoStatus) => {
     const atualizada = await obrasService.alterarStatus(id, novoStatus);
-    setObras((prev) => prev.map((o) => (o.id === id ? atualizada : o)));
+    setObrasRaw((prev) => prev.map((o) => (o.id === id ? atualizada : o)));
     return atualizada;
   };
 
   const excluir = async (id) => {
     await obrasService.excluirObra(id);
-    setObras((prev) => prev.filter((o) => o.id !== id));
+    setObrasRaw((prev) => prev.filter((o) => o.id !== id));
   };
 
   return {
@@ -54,8 +59,8 @@ export function useObras() {
     error,
     busca,
     setBusca,
-    filtroStatus,
-    setFiltroStatus,
+    filtrosStatus,
+    setFiltrosStatus,
     criar,
     atualizar,
     alterarStatus,

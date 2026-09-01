@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Pencil, Trash2, Link2, X, Loader2 } from "lucide-react";
+import { Pencil, Trash2, Link2, X, Loader2, FileText, Plus, Paperclip } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -8,6 +8,11 @@ import {
 } from "../ui/dialog";
 import { Button } from "../ui/button";
 import { Badge } from "../ui/badge";
+import { useOrcamentos } from "../../hooks/useOrcamentos";
+import { formatDate, formatCurrency } from "../../utils/format";
+import OrcamentoFormModal from "./orcamentos/OrcamentoFormModal";
+import OrcamentoDetailsModal from "./orcamentos/OrcamentoDetailsModal";
+import ConfirmDeleteOrcamentoModal from "./orcamentos/ConfirmDeleteOrcamentoModal";
 
 function Detail({ label, value }) {
   return (
@@ -29,6 +34,21 @@ export default function FornecedorDetailsModal({
 }) {
   const [desvinculando, setDesvinculando] = useState(null);
 
+  const {
+    orcamentos,
+    loading: loadingOrcamentos,
+    criar: criarOrcamento,
+    atualizar: atualizarOrcamento,
+    excluir: excluirOrcamento,
+    baixarArquivo,
+  } = useOrcamentos(fornecedor?.id);
+
+  const [selectedOrcamento, setSelectedOrcamento] = useState(null);
+  const [showNovoOrcamento, setShowNovoOrcamento] = useState(false);
+  const [showOrcamentoDetails, setShowOrcamentoDetails] = useState(false);
+  const [showOrcamentoEdit, setShowOrcamentoEdit] = useState(false);
+  const [showDeleteOrcamento, setShowDeleteOrcamento] = useState(false);
+
   if (!fornecedor) return null;
 
   async function handleDesvincular(obraId) {
@@ -40,8 +60,44 @@ export default function FornecedorDetailsModal({
     }
   }
 
+  function handleSelectOrcamento(orcamento) {
+    setSelectedOrcamento(orcamento);
+    setShowOrcamentoDetails(true);
+  }
+
+  function handleOpenEditOrcamento() {
+    setShowOrcamentoDetails(false);
+    setShowOrcamentoEdit(true);
+  }
+
+  function handleOpenDeleteOrcamento() {
+    setShowOrcamentoDetails(false);
+    setShowDeleteOrcamento(true);
+  }
+
+  async function handleCriarOrcamento(dto, arquivo) {
+    await criarOrcamento(dto, arquivo);
+  }
+
+  async function handleAtualizarOrcamento(dto, arquivo) {
+    const atualizado = await atualizarOrcamento(selectedOrcamento.id, dto, arquivo);
+    setSelectedOrcamento(atualizado);
+  }
+
+  async function handleExcluirOrcamento() {
+    await excluirOrcamento(selectedOrcamento.id);
+    setSelectedOrcamento(null);
+  }
+
+  async function handleBaixarArquivo() {
+    await baixarArquivo(selectedOrcamento.id, selectedOrcamento.arquivoNome);
+  }
+
   return (
-    <Dialog open={open} onOpenChange={(v) => !v && onClose()}>
+    <Dialog
+      open={open && !showNovoOrcamento && !showOrcamentoEdit && !showOrcamentoDetails && !showDeleteOrcamento}
+      onOpenChange={(v) => !v && onClose()}
+    >
       <DialogContent className="sm:max-w-lg">
         <DialogHeader>
           <DialogTitle>Detalhes do Fornecedor</DialogTitle>
@@ -104,6 +160,55 @@ export default function FornecedorDetailsModal({
               <p className="text-sm text-muted-foreground">Nenhuma obra vinculada.</p>
             )}
           </div>
+
+          <div>
+            <div className="flex items-center justify-between mb-2">
+              <p className="text-xs text-muted-foreground">Orçamentos ({orcamentos.length})</p>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setShowNovoOrcamento(true)}
+                className="flex items-center gap-1.5"
+              >
+                <Plus className="w-3.5 h-3.5" />
+                Novo Orçamento
+              </Button>
+            </div>
+            {loadingOrcamentos ? (
+              <div className="flex items-center justify-center py-6 text-muted-foreground gap-2">
+                <Loader2 className="w-4 h-4 animate-spin" />
+                <span className="text-sm">Carregando...</span>
+              </div>
+            ) : orcamentos.length > 0 ? (
+              <ul className="flex flex-col gap-1.5">
+                {orcamentos.map((orcamento) => (
+                  <li key={orcamento.id}>
+                    <button
+                      type="button"
+                      onClick={() => handleSelectOrcamento(orcamento)}
+                      className="flex w-full items-center justify-between gap-2 rounded-md bg-muted/50 px-3 py-2 text-left text-sm transition-colors hover:bg-muted"
+                    >
+                      <span className="flex items-center gap-2 text-foreground">
+                        <FileText className="w-3.5 h-3.5 shrink-0 text-muted-foreground" />
+                        {orcamento.obraNome}
+                        {orcamento.possuiArquivo && (
+                          <Paperclip className="w-3 h-3 shrink-0 text-muted-foreground" />
+                        )}
+                      </span>
+                      <span className="flex items-center gap-3 text-muted-foreground">
+                        {formatDate(orcamento.dataOrcamento)}
+                        <span className="font-medium text-foreground">
+                          {formatCurrency(orcamento.valorTotal)}
+                        </span>
+                      </span>
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            ) : (
+              <p className="text-sm text-muted-foreground">Nenhum orçamento cadastrado.</p>
+            )}
+          </div>
         </div>
 
         <div className="flex flex-wrap items-center gap-2 pt-3 border-t border-border">
@@ -123,6 +228,36 @@ export default function FornecedorDetailsModal({
           </Button>
         </div>
       </DialogContent>
+
+      <OrcamentoFormModal
+        open={showNovoOrcamento}
+        orcamento={null}
+        onClose={() => setShowNovoOrcamento(false)}
+        onSave={handleCriarOrcamento}
+      />
+
+      <OrcamentoFormModal
+        open={showOrcamentoEdit}
+        orcamento={selectedOrcamento}
+        onClose={() => setShowOrcamentoEdit(false)}
+        onSave={handleAtualizarOrcamento}
+      />
+
+      <OrcamentoDetailsModal
+        open={showOrcamentoDetails}
+        orcamento={selectedOrcamento}
+        onClose={() => setShowOrcamentoDetails(false)}
+        onEdit={handleOpenEditOrcamento}
+        onDelete={handleOpenDeleteOrcamento}
+        onBaixarArquivo={handleBaixarArquivo}
+      />
+
+      <ConfirmDeleteOrcamentoModal
+        open={showDeleteOrcamento}
+        orcamento={selectedOrcamento}
+        onClose={() => setShowDeleteOrcamento(false)}
+        onConfirm={handleExcluirOrcamento}
+      />
     </Dialog>
   );
 }
