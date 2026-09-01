@@ -14,15 +14,17 @@ import {
 import { cn } from "../../lib/utils";
 import { authService } from "../../services/authService";
 
+const TODOS = ["ADMINISTRADOR", "EQUIPE"];
+
 const navItems = [
-  { to: "/dashboard", label: "Dashboard", icon: LayoutDashboard, roles: ["Equipe"] },
-  { to: "/obras", label: "Obras", icon: HardHat, roles: ["Equipe"] },
-  { to: "/cronograma", label: "Cronograma", icon: CalendarDays, roles: ["Equipe"] },
-  { to: "/financeiro", label: "Financeiro", icon: DollarSign, roles: ["Equipe", "Proprietario"] },
-  { to: "/custos", label: "Custos", icon: Receipt, roles: ["Equipe"] },
-  { to: "/fornecedores", label: "Fornecedores", icon: Truck, roles: ["Equipe"] },
-  { to: "/relatorios", label: "Relatórios", icon: FileBarChart, roles: ["Equipe"] },
-  { to: "/funcionarios", label: "Funcionários", icon: Users, roles: ["Equipe"] },
+  { to: "/dashboard", label: "Dashboard", icon: LayoutDashboard, roles: TODOS },
+  { to: "/obras", label: "Obras", icon: HardHat, roles: TODOS },
+  { to: "/cronograma", label: "Cronograma", icon: CalendarDays, roles: TODOS },
+  { to: "/financeiro", label: "Financeiro", icon: DollarSign, roles: TODOS },
+  { to: "/custos", label: "Custos", icon: Receipt, roles: TODOS },
+  { to: "/fornecedores", label: "Fornecedores", icon: Truck, roles: TODOS },
+  { to: "/relatorios", label: "Relatórios", icon: FileBarChart, roles: TODOS },
+  { to: "/funcionarios", label: "Funcionários", icon: Users, roles: ["ADMINISTRADOR"] },
 ];
 
 export default function Sidebar() {
@@ -49,9 +51,9 @@ export default function Sidebar() {
         {navItems
           .filter((item) => {
             const user = authService.getUser();
-            const role = user?.role;
-            if (!role) return false;
-            return item.roles?.includes(role);
+            const cargo = user?.cargo;
+            if (!cargo) return false;
+            return item.roles?.includes(cargo);
           })
           .map(({ to, label, icon: Icon }) => (
             <NavLink

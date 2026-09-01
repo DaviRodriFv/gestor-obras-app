@@ -25,7 +25,7 @@ export const obrasService = {
   },
 
   alterarStatus: async (id, novoStatus) => {
-    const { data } = await api.patch(`/api/obras/${id}/status`, { status: novoStatus });
+    const { data } = await api.patch(`/api/obras/${id}/status`, { novoStatus });
     return data;
   },
 

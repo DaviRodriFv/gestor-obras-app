@@ -19,3 +19,10 @@ export const STATUS_TRANSITIONS = {
 };
 
 export const STATUS_TERMINAL = ["CONCLUIDA", "CANCELADA"];
+
+export const STATUS_ETAPA_LABELS = {
+  NAO_INICIADA: "Não Iniciada",
+  EM_ANDAMENTO: "Em Andamento",
+  CONCLUIDA: "Concluída",
+  ATRASADA: "Atrasada",
+};
