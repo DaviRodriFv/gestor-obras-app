@@ -3,25 +3,18 @@ import { custosService } from "../services/custosService";
 
 export function useCustos(obraId) {
   const [custos, setCustos] = useState([]);
-  const [porCategoria, setPorCategoria] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
   const carregar = useCallback(async () => {
     if (!obraId) {
       setCustos([]);
-      setPorCategoria([]);
       return;
     }
     setLoading(true);
     setError(null);
     try {
-      const [listaCustos, resumo] = await Promise.all([
-        custosService.listarCustos(obraId),
-        custosService.porCategoria(obraId),
-      ]);
-      setCustos(listaCustos);
-      setPorCategoria(resumo);
+      setCustos(await custosService.listarCustos(obraId));
     } catch {
       setError("Erro ao carregar custos. Tente novamente.");
     } finally {
@@ -43,13 +36,15 @@ export function useCustos(obraId) {
     await carregar();
   };
 
+  const baixarAnexo = (custo) => custosService.baixarArquivo(obraId, custo.id, custo.anexoNome);
+
   return {
     custos,
-    porCategoria,
     loading,
     error,
     atualizarStatus,
     excluir,
+    baixarAnexo,
     recarregar: carregar,
   };
 }

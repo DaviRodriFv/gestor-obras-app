@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useSearchParams } from "react-router-dom";
 import { CalendarDays, Loader2, RefreshCw, Plus } from "lucide-react";
 import { obrasService } from "../../services/obrasService";
 import { useCronograma } from "../../hooks/useCronograma";
@@ -15,7 +16,10 @@ import ConfirmDeleteEtapaModal from "./ConfirmDeleteEtapaModal";
 export default function CronogramaPage() {
   const [obras, setObras] = useState([]);
   const [obrasLoading, setObrasLoading] = useState(true);
-  const [obraId, setObraId] = useState("");
+  // A obra fica na URL (?obra=) para o Dashboard poder abrir o cronograma de uma obra direto
+  const [searchParams, setSearchParams] = useSearchParams();
+  const obraId = searchParams.get("obra") ?? "";
+  const setObraId = (id) => setSearchParams(id ? { obra: id } : {});
 
   const {
     etapas,

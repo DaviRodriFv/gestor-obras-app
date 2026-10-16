@@ -1,3 +1,4 @@
+import { Paperclip } from "lucide-react";
 import { formatDate, formatCurrency, CATEGORIA_CUSTO_LABELS } from "../../utils/format";
 import CustoStatusBadge from "./CustoStatusBadge";
 import {
@@ -25,7 +26,14 @@ export default function CustosTable({ custos, onSelect }) {
       <TableBody>
         {custos.map((custo) => (
           <TableRow key={custo.id} className="cursor-pointer" onClick={() => onSelect(custo)}>
-            <TableCell className="font-medium">{custo.descricao}</TableCell>
+            <TableCell className="font-medium">
+              <span className="flex items-center gap-1.5">
+                {custo.descricao}
+                {custo.possuiAnexo && (
+                  <Paperclip className="w-3.5 h-3.5 text-muted-foreground shrink-0" aria-label="Possui anexo" />
+                )}
+              </span>
+            </TableCell>
             <TableCell className="text-muted-foreground">
               {CATEGORIA_CUSTO_LABELS[custo.categoria] ?? custo.categoria}
             </TableCell>

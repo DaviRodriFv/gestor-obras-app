@@ -23,7 +23,8 @@ const navItems = [
   { to: "/financeiro", label: "Financeiro", icon: DollarSign, roles: ["ADMINISTRADOR"] },
   { to: "/custos", label: "Custos", icon: Receipt, roles: ["ADMINISTRADOR"] },
   { to: "/fornecedores", label: "Fornecedores", icon: Truck, roles: TODOS },
-  { to: "/relatorios", label: "Relatórios", icon: FileBarChart, roles: TODOS },
+  // O relatório da obra traz dados financeiros, então segue a mesma regra do Financeiro
+  { to: "/relatorios", label: "Relatórios", icon: FileBarChart, roles: ["ADMINISTRADOR"] },
   { to: "/funcionarios", label: "Funcionários", icon: Users, roles: ["ADMINISTRADOR"] },
 ];
 

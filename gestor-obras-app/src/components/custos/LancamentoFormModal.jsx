@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Loader2 } from "lucide-react";
+import { Loader2, Paperclip, X } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -25,6 +25,17 @@ const EMPTY_FORM = {
   status: "PENDENTE",
 };
 
+// Mesmo limite do backend (spring.servlet.multipart.max-file-size)
+const TAMANHO_MAXIMO_ANEXO = 10 * 1024 * 1024;
+const TIPOS_ANEXO = ["application/pdf", "image/png", "image/jpeg"];
+
+function validarAnexo(arquivo) {
+  if (!arquivo) return undefined;
+  if (!TIPOS_ANEXO.includes(arquivo.type)) return "O anexo deve ser um PDF ou uma imagem (PNG ou JPG).";
+  if (arquivo.size > TAMANHO_MAXIMO_ANEXO) return "O anexo deve ter no máximo 10 MB.";
+  return undefined;
+}
+
 function validate(form) {
   const errors = {};
   if (!form.descricao.trim()) errors.descricao = "Descrição é obrigatória.";
@@ -37,9 +48,9 @@ function validate(form) {
 }
 
 /**
- * Modal reutilizável de lançamento de custo — usado pela tela Custos
- * (criação/edição) e pela tela Financeiro (botão "Novo Lançamento").
+ * Modal de lançamento de custo (criação/edição) da tela Custos.
  * Recebe `obraId` e chama `onSalvo` após criar/atualizar com sucesso.
+ * O anexo (orçamento, nota fiscal, recibo) é enviado depois do lançamento, em PUT /anexo.
  */
 export default function LancamentoFormModal({ open, custo, obraId, onClose, onSalvo }) {
   const isEdit = Boolean(custo);
@@ -49,11 +60,18 @@ export default function LancamentoFormModal({ open, custo, obraId, onClose, onSa
   const [saving, setSaving] = useState(false);
   const [apiError, setApiError] = useState("");
   const [fornecedores, setFornecedores] = useState([]);
+  const [novoArquivo, setNovoArquivo] = useState(null);
+  const [removerAnexo, setRemoverAnexo] = useState(false);
+  // Lançamento já criado nesta abertura do modal — se só o anexo falhar, salvar de novo não duplica o custo
+  const [custoCriadoId, setCustoCriadoId] = useState(null);
 
   useEffect(() => {
     if (open) {
       setApiError("");
       setErrors({});
+      setNovoArquivo(null);
+      setRemoverAnexo(false);
+      setCustoCriadoId(null);
       if (custo) {
         setForm({
           descricao: custo.descricao ?? "",
@@ -78,8 +96,16 @@ export default function LancamentoFormModal({ open, custo, obraId, onClose, onSa
     setErrors((e) => ({ ...e, [field]: undefined }));
   }
 
+  function handleArquivoChange(arquivo) {
+    setNovoArquivo(arquivo);
+    setRemoverAnexo(false);
+    setErrors((e) => ({ ...e, arquivo: validarAnexo(arquivo) }));
+  }
+
   async function handleSave() {
     const errs = validate(form);
+    const erroAnexo = validarAnexo(novoArquivo);
+    if (erroAnexo) errs.arquivo = erroAnexo;
     if (Object.keys(errs).length > 0) {
       setErrors(errs);
       return;
@@ -93,22 +119,45 @@ export default function LancamentoFormModal({ open, custo, obraId, onClose, onSa
       categoria: form.categoria,
       fornecedorId: form.fornecedorId || null,
     };
+    const idExistente = custo?.id ?? custoCriadoId;
     // O status só muda via PATCH /status (Registrar pagamento / Cancelar) — o PUT de edição o ignora.
-    if (!isEdit) dto.status = form.status;
+    if (!idExistente) dto.status = form.status;
+
+    let salvo;
     try {
-      if (isEdit) {
-        await custosService.atualizar(obraId, custo.id, dto);
-      } else {
-        await custosService.criar(obraId, dto);
-      }
-      await onSalvo();
-      onClose();
+      salvo = idExistente
+        ? await custosService.atualizar(obraId, idExistente, dto)
+        : await custosService.criar(obraId, dto);
     } catch (err) {
       setApiError(err?.response?.data?.message ?? "Erro ao salvar. Tente novamente.");
-    } finally {
       setSaving(false);
+      return;
     }
+    setCustoCriadoId(salvo.id);
+
+    try {
+      if (novoArquivo) {
+        await custosService.anexarArquivo(obraId, salvo.id, novoArquivo);
+      } else if (removerAnexo) {
+        await custosService.removerArquivo(obraId, salvo.id);
+      }
+    } catch (err) {
+      await onSalvo();
+      setApiError(
+        `Lançamento salvo, mas o anexo não foi enviado: ${
+          err?.response?.data?.message ?? "tente novamente."
+        }`,
+      );
+      setSaving(false);
+      return;
+    }
+
+    await onSalvo();
+    setSaving(false);
+    onClose();
   }
+
+  const anexoAtual = custo?.possuiAnexo && !removerAnexo ? custo.anexoNome : null;
 
   return (
     <Dialog open={open} onOpenChange={(v) => !v && onClose()}>
@@ -199,6 +248,44 @@ export default function LancamentoFormModal({ open, custo, obraId, onClose, onSa
                 </option>
               ))}
             </Select>
+          </div>
+
+          <div className="flex flex-col gap-1.5">
+            <Label htmlFor="arquivo">Anexo (orçamento, nota fiscal ou recibo)</Label>
+            {anexoAtual && !novoArquivo && (
+              <div className="flex items-center justify-between gap-2 rounded-md border border-border px-3 py-2">
+                <span className="flex items-center gap-1.5 text-xs text-muted-foreground truncate">
+                  <Paperclip className="w-3.5 h-3.5 shrink-0" />
+                  {anexoAtual}
+                </span>
+                <button
+                  type="button"
+                  onClick={() => setRemoverAnexo(true)}
+                  className="flex items-center gap-1 text-xs text-destructive hover:underline shrink-0"
+                >
+                  <X className="w-3.5 h-3.5" />
+                  Remover
+                </button>
+              </div>
+            )}
+            {removerAnexo && (
+              <p className="text-xs text-muted-foreground">
+                O anexo atual será removido ao salvar.{" "}
+                <button type="button" onClick={() => setRemoverAnexo(false)} className="underline">
+                  Desfazer
+                </button>
+              </p>
+            )}
+            <Input
+              id="arquivo"
+              type="file"
+              accept="application/pdf,image/png,image/jpeg"
+              onChange={(e) => handleArquivoChange(e.target.files?.[0] ?? null)}
+            />
+            <p className="text-xs text-muted-foreground">
+              PDF, PNG ou JPG, até 10 MB.{anexoAtual && !novoArquivo ? " Selecionar outro arquivo substitui o atual." : ""}
+            </p>
+            {errors.arquivo && <p className="text-xs text-destructive">{errors.arquivo}</p>}
           </div>
 
           {apiError && <p className="text-sm text-destructive">{apiError}</p>}

@@ -29,5 +29,8 @@ Contexto do projeto em `docs/estagio/`:
 @docs/estagio/especificacoes/casos-de-uso/gerenciar-funcionarios.md
 @docs/estagio/especificacoes/casos-de-uso/gerenciar-cronograma.md
 @docs/estagio/especificacoes/casos-de-uso/gerenciar-fornecedores.md
+@docs/estagio/especificacoes/casos-de-uso/emitir-relatorios.md
 
-**Pendentes** (aparecem no diagrama, ainda sem especificação): `DashboardFinanceiro`, `GerenciarCustos`, `Emitir Relatórios`. Ao especificá-los, criar o `.md` em `casos-de-uso/` e adicionar o import aqui.
+**Pendentes** (aparecem no diagrama, ainda sem especificação): `DashboardFinanceiro`, `GerenciarCustos`. Ao especificá-los, criar o `.md` em `casos-de-uso/` (nos dois repositórios) e adicionar o import aqui.
+
+Telas de Financeiro × Custos: **Financeiro** é só painel (orçamento, gasto, saldo, situação, gráfico por categoria) e tem os botões "Ver lançamentos" e "Emitir relatório"; **Custos** é onde se lança/edita/paga/anexa. O relatório da obra (`/relatorios/obra/:obraId`) fica fora do `Layout`, em folha branca, para imprimir/salvar em PDF (`window.print()`).

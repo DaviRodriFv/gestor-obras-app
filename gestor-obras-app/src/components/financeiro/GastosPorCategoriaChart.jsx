@@ -1,7 +1,8 @@
 import { PieChart, Pie, Cell, Tooltip, Legend, ResponsiveContainer } from "recharts";
 import { CATEGORIA_CUSTO_LABELS, CATEGORIA_CUSTO_COLORS, formatCurrency } from "../../utils/format";
 
-export default function CustosPorCategoriaChart({ dados, onSelectCategoria }) {
+/** Rosca da distribuição do gasto por categoria; clicar numa fatia chama `onSelectCategoria`. */
+export default function GastosPorCategoriaChart({ dados, onSelectCategoria }) {
   const data = dados
     .filter((d) => d.total > 0)
     .map((d) => ({

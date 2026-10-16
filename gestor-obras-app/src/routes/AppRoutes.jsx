@@ -4,12 +4,13 @@ import Login from "../pages/Login/Login";
 import RedefinirSenha from "../pages/RedefinirSenha/RedefinirSenha";
 import Dashboard from "../pages/Dashboard/Dashboard";
 import Funcionarios from "../pages/Funcionarios/Funcionarios";
-import Placeholder from "../pages/Placeholder/Placeholder";
 import ObrasPage from "../components/obras/ObrasPage";
 import CronogramaPage from "../components/cronograma/CronogramaPage";
 import FornecedoresPage from "../components/fornecedores/FornecedoresPage";
 import CustosPage from "../components/custos/CustosPage";
 import FinanceiroPage from "../components/financeiro/FinanceiroPage";
+import RelatoriosPage from "../components/relatorios/RelatoriosPage";
+import RelatorioObraPage from "../components/relatorios/RelatorioObraPage";
 import RequireRole from "../components/layout/RequireRole";
 
 export default function AppRoutes() {
@@ -39,7 +40,14 @@ export default function AppRoutes() {
           }
         />
         <Route path="fornecedores" element={<FornecedoresPage />} />
-        <Route path="relatorios" element={<Placeholder title="Relatórios" />} />
+        <Route
+          path="relatorios"
+          element={
+            <RequireRole allowedRoles={["ADMINISTRADOR"]}>
+              <RelatoriosPage />
+            </RequireRole>
+          }
+        />
         <Route
           path="funcionarios"
           element={
@@ -49,6 +57,15 @@ export default function AppRoutes() {
           }
         />
       </Route>
+      {/* Fora do Layout: página branca, só com o documento, para imprimir/salvar em PDF */}
+      <Route
+        path="/relatorios/obra/:obraId"
+        element={
+          <RequireRole allowedRoles={["ADMINISTRADOR"]}>
+            <RelatorioObraPage />
+          </RequireRole>
+        }
+      />
       <Route path="*" element={<Navigate to="/dashboard" replace />} />
     </Routes>
   );

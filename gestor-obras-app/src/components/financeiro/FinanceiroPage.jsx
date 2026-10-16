@@ -1,42 +1,36 @@
-import { useState, useEffect, useMemo } from "react";
-import { DollarSign, Loader2, RefreshCw, Plus, Pencil } from "lucide-react";
+import { useState, useEffect } from "react";
+import { useNavigate, useSearchParams } from "react-router-dom";
+import { DollarSign, Loader2, RefreshCw, Pencil, Receipt, FileBarChart } from "lucide-react";
 import { obrasService } from "../../services/obrasService";
 import { useFinanceiro } from "../../hooks/useFinanceiro";
-import { useCustos } from "../../hooks/useCustos";
 import { Button } from "../ui/button";
 import { Select } from "../ui/select";
 import { Label } from "../ui/label";
 import { Card, CardContent } from "../ui/card";
-import { CheckboxFilterDropdown } from "../ui/checkbox-filter-dropdown";
 import { CATEGORIA_CUSTO_LABELS, CATEGORIA_CUSTO_COLORS, formatCurrency } from "../../utils/format";
 import SituacaoBadge from "./SituacaoBadge";
 import OrcamentoFormModal from "./OrcamentoFormModal";
-import CustosTable from "../custos/CustosTable";
-import LancamentoFormModal from "../custos/LancamentoFormModal";
-import CustoDetailsModal from "../custos/CustoDetailsModal";
-import ConfirmDeleteCustoModal from "../custos/ConfirmDeleteCustoModal";
+import GastosPorCategoriaChart from "./GastosPorCategoriaChart";
 
 const CATEGORIA_OPTIONS = Object.entries(CATEGORIA_CUSTO_LABELS).map(([value, label]) => ({
   value,
   label,
 }));
 
+/**
+ * Painel financeiro da obra: teto de gasto, total gasto, saldo, situação e gasto por categoria.
+ * Só leitura — os lançamentos são feitos na tela Custos (botão "Ver lançamentos").
+ */
 export default function FinanceiroPage() {
+  const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
+  const obraId = searchParams.get("obra") ?? "";
+
   const [obras, setObras] = useState([]);
   const [obrasLoading, setObrasLoading] = useState(true);
-  const [obraId, setObraId] = useState("");
+  const [showOrcamento, setShowOrcamento] = useState(false);
 
   const { dashboard, loading, error, definirOrcamento, recarregar } = useFinanceiro(obraId || null);
-  const { custos, atualizarStatus, excluir, recarregar: recarregarCustos } = useCustos(obraId || null);
-
-  const [filtrosCategoria, setFiltrosCategoria] = useState([]);
-  const [selectedCusto, setSelectedCusto] = useState(null);
-
-  const [showOrcamento, setShowOrcamento] = useState(false);
-  const [showNovoLancamento, setShowNovoLancamento] = useState(false);
-  const [showDetails, setShowDetails] = useState(false);
-  const [showEdit, setShowEdit] = useState(false);
-  const [showDelete, setShowDelete] = useState(false);
 
   useEffect(() => {
     obrasService
@@ -45,58 +39,14 @@ export default function FinanceiroPage() {
       .finally(() => setObrasLoading(false));
   }, []);
 
-  const custosFiltrados = useMemo(() => {
-    if (filtrosCategoria.length === 0) return custos;
-    return custos.filter((c) => filtrosCategoria.includes(c.categoria));
-  }, [custos, filtrosCategoria]);
-
-  function handleToggleCategoria(value) {
-    setFiltrosCategoria((prev) =>
-      prev.includes(value) ? prev.filter((v) => v !== value) : [...prev, value],
-    );
+  function handleSelectObra(id) {
+    setSearchParams(id ? { obra: id } : {});
   }
 
-  async function handleSalvarOrcamento(valor) {
-    await definirOrcamento(valor);
-  }
-
-  async function handleSalvoLancamento() {
-    await Promise.all([recarregar(), recarregarCustos()]);
-  }
-
-  function handleSelectCusto(custo) {
-    setSelectedCusto(custo);
-    setShowDetails(true);
-  }
-
-  function handleOpenEdit() {
-    setShowDetails(false);
-    setShowEdit(true);
-  }
-
-  function handleOpenDelete() {
-    setShowDetails(false);
-    setShowDelete(true);
-  }
-
-  async function handleRegistrarPagamento() {
-    await atualizarStatus(selectedCusto.id, "PAGO");
-    await recarregar();
-    setShowDetails(false);
-    setSelectedCusto(null);
-  }
-
-  async function handleCancelar() {
-    await atualizarStatus(selectedCusto.id, "CANCELADO");
-    await recarregar();
-    setShowDetails(false);
-    setSelectedCusto(null);
-  }
-
-  async function handleExcluir() {
-    await excluir(selectedCusto.id);
-    await recarregar();
-    setSelectedCusto(null);
+  function abrirLancamentos(categoria) {
+    const params = new URLSearchParams({ obra: obraId });
+    if (categoria) params.set("categoria", categoria);
+    navigate(`/custos?${params}`);
   }
 
   const semOrcamento = dashboard?.situacao === "SEM_ORCAMENTO";
@@ -107,19 +57,26 @@ export default function FinanceiroPage() {
       <div className="flex items-center justify-between mb-6">
         <div>
           <h1 className="text-2xl font-bold text-foreground">Financeiro</h1>
-          <p className="text-muted-foreground mt-1">Acompanhe orçamento e gastos de cada obra</p>
+          <p className="text-muted-foreground mt-1">Orçamento previsto × gasto real de cada obra</p>
         </div>
         {obraId && (
-          <Button onClick={() => setShowNovoLancamento(true)} className="flex items-center gap-2">
-            <Plus className="w-4 h-4" />
-            Novo Lançamento
-          </Button>
+          <div className="flex items-center gap-2">
+            <Button variant="outline" onClick={() => abrirLancamentos()} className="flex items-center gap-2">
+              <Receipt className="w-4 h-4" />
+              Ver lançamentos
+            </Button>
+            {/* <<extend>> Emitir Relatórios */}
+            <Button onClick={() => navigate(`/relatorios/obra/${obraId}`)} className="flex items-center gap-2">
+              <FileBarChart className="w-4 h-4" />
+              Emitir relatório
+            </Button>
+          </div>
         )}
       </div>
 
       <div className="flex flex-col gap-1.5 mb-6 max-w-sm">
         <Label htmlFor="obra">Obra</Label>
-        <Select id="obra" value={obraId} onChange={(e) => setObraId(e.target.value)} disabled={obrasLoading}>
+        <Select id="obra" value={obraId} onChange={(e) => handleSelectObra(e.target.value)} disabled={obrasLoading}>
           <option value="">Selecione uma obra...</option>
           {obras.map((obra) => (
             <option key={obra.id} value={obra.id}>
@@ -228,70 +185,66 @@ export default function FinanceiroPage() {
               </Card>
             </div>
 
-            <Card className="mb-5">
-              <CardContent className="py-5">
-                <p className="text-sm font-medium text-foreground mb-4">Gastos por Categoria</p>
-                <div className="flex flex-col gap-4">
-                  {CATEGORIA_OPTIONS.map(({ value, label }) => {
-                    const item = dashboard.gastosPorCategoria?.find((g) => g.categoria === value);
-                    const pct = item?.percentualOrcamento;
-                    return (
-                      <div key={value}>
-                        <div className="flex items-center justify-between mb-1.5">
-                          <span className="flex items-center gap-2 text-sm text-foreground">
-                            <span
-                              className="w-2.5 h-2.5 rounded-full shrink-0"
-                              style={{ backgroundColor: CATEGORIA_CUSTO_COLORS[value] }}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+              <Card>
+                <CardContent className="py-5">
+                  <p className="text-sm font-medium text-foreground mb-1">Gastos por Categoria</p>
+                  <p className="text-xs text-muted-foreground mb-4">
+                    Percentual em relação ao orçamento da obra. Clique numa categoria para ver os lançamentos.
+                  </p>
+                  <div className="flex flex-col gap-4">
+                    {CATEGORIA_OPTIONS.map(({ value, label }) => {
+                      const item = dashboard.gastosPorCategoria?.find((g) => g.categoria === value);
+                      const pct = item?.percentualOrcamento;
+                      return (
+                        <button
+                          key={value}
+                          type="button"
+                          onClick={() => abrirLancamentos(value)}
+                          className="text-left rounded-md -mx-2 px-2 py-1 hover:bg-muted/50 transition-colors"
+                        >
+                          <div className="flex items-center justify-between mb-1.5">
+                            <span className="flex items-center gap-2 text-sm text-foreground">
+                              <span
+                                className="w-2.5 h-2.5 rounded-full shrink-0"
+                                style={{ backgroundColor: CATEGORIA_CUSTO_COLORS[value] }}
+                              />
+                              {label}
+                              <span className="text-xs text-muted-foreground">
+                                ({item?.quantidade ?? 0} lançamento(s))
+                              </span>
+                            </span>
+                            <span className="text-sm text-muted-foreground">
+                              {formatCurrency(item?.total ?? 0)}
+                              {pct != null && ` · ${Math.round(pct)}%`}
+                            </span>
+                          </div>
+                          <div className="w-full h-2 rounded-full bg-muted overflow-hidden">
+                            <div
+                              className="h-full transition-all"
+                              style={{
+                                width: `${Math.min(pct ?? 0, 100)}%`,
+                                backgroundColor: CATEGORIA_CUSTO_COLORS[value],
+                              }}
                             />
-                            {label}
-                          </span>
-                          <span className="text-sm text-muted-foreground">
-                            {formatCurrency(item?.total ?? 0)}
-                            {pct != null && ` · ${Math.round(pct)}%`}
-                          </span>
-                        </div>
-                        <div className="w-full h-2 rounded-full bg-muted overflow-hidden">
-                          <div
-                            className="h-full transition-all"
-                            style={{
-                              width: `${Math.min(pct ?? 0, 100)}%`,
-                              backgroundColor: CATEGORIA_CUSTO_COLORS[value],
-                            }}
-                          />
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
-              </CardContent>
-            </Card>
-
-            <div className="flex items-center gap-4 mb-5">
-              <CheckboxFilterDropdown
-                label="Categoria"
-                options={CATEGORIA_OPTIONS}
-                selected={filtrosCategoria}
-                onToggle={handleToggleCategoria}
-                className="w-56"
-              />
-            </div>
-
-            <Card>
-              <CardContent className="p-0">
-                {custosFiltrados.length === 0 ? (
-                  <div className="flex flex-col items-center justify-center py-16 text-muted-foreground gap-2">
-                    <DollarSign className="w-10 h-10 opacity-30" />
-                    <p className="text-sm">
-                      {filtrosCategoria.length > 0
-                        ? "Nenhum lançamento encontrado para o filtro aplicado."
-                        : "Nenhum custo lançado para esta obra."}
-                    </p>
+                          </div>
+                        </button>
+                      );
+                    })}
                   </div>
-                ) : (
-                  <CustosTable custos={custosFiltrados} onSelect={handleSelectCusto} />
-                )}
-              </CardContent>
-            </Card>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardContent className="py-5">
+                  <p className="text-sm font-medium text-foreground mb-2">Distribuição do Gasto</p>
+                  <GastosPorCategoriaChart
+                    dados={dashboard.gastosPorCategoria ?? []}
+                    onSelectCategoria={abrirLancamentos}
+                  />
+                </CardContent>
+              </Card>
+            </div>
           </>
         )
       )}
@@ -300,40 +253,7 @@ export default function FinanceiroPage() {
         open={showOrcamento}
         orcamentoAtual={dashboard?.orcamento}
         onClose={() => setShowOrcamento(false)}
-        onSave={handleSalvarOrcamento}
-      />
-
-      <LancamentoFormModal
-        open={showNovoLancamento}
-        custo={null}
-        obraId={obraId}
-        onClose={() => setShowNovoLancamento(false)}
-        onSalvo={handleSalvoLancamento}
-      />
-
-      <LancamentoFormModal
-        open={showEdit}
-        custo={selectedCusto}
-        obraId={obraId}
-        onClose={() => setShowEdit(false)}
-        onSalvo={handleSalvoLancamento}
-      />
-
-      <CustoDetailsModal
-        open={showDetails}
-        custo={selectedCusto}
-        onClose={() => setShowDetails(false)}
-        onEdit={handleOpenEdit}
-        onRegistrarPagamento={handleRegistrarPagamento}
-        onCancelar={handleCancelar}
-        onDelete={handleOpenDelete}
-      />
-
-      <ConfirmDeleteCustoModal
-        open={showDelete}
-        custo={selectedCusto}
-        onClose={() => setShowDelete(false)}
-        onConfirm={handleExcluir}
+        onSave={definirOrcamento}
       />
     </div>
   );

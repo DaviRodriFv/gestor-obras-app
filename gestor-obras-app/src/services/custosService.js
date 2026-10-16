@@ -38,4 +38,33 @@ export const custosService = {
     const { data } = await api.get(`/api/obras/${obraId}/custos/por-categoria`);
     return data;
   },
+
+  /** Anexa (ou substitui) o arquivo do lançamento — PDF ou imagem do orçamento/nota. */
+  anexarArquivo: async (obraId, id, arquivo) => {
+    const formData = new FormData();
+    formData.append("arquivo", arquivo);
+    const { data } = await api.put(`/api/obras/${obraId}/custos/${id}/anexo`, formData, {
+      headers: { "Content-Type": "multipart/form-data" },
+    });
+    return data;
+  },
+
+  removerArquivo: async (obraId, id) => {
+    const { data } = await api.delete(`/api/obras/${obraId}/custos/${id}/anexo`);
+    return data;
+  },
+
+  baixarArquivo: async (obraId, id, nomeArquivo) => {
+    const response = await api.get(`/api/obras/${obraId}/custos/${id}/anexo`, {
+      responseType: "blob",
+    });
+    const url = URL.createObjectURL(response.data);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = nomeArquivo ?? "anexo";
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    URL.revokeObjectURL(url);
+  },
 };
