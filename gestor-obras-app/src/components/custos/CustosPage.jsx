@@ -118,6 +118,12 @@ export default function CustosPage() {
     setSelectedCusto(null);
   }
 
+  async function handleReverterParaPendente() {
+    await atualizarStatus(selectedCusto.id, "PENDENTE");
+    setShowDetails(false);
+    setSelectedCusto(null);
+  }
+
   async function handleExcluir() {
     await excluir(selectedCusto.id);
     setSelectedCusto(null);
@@ -261,6 +267,7 @@ export default function CustosPage() {
         onEdit={handleOpenEdit}
         onRegistrarPagamento={handleRegistrarPagamento}
         onCancelar={handleCancelar}
+        onReverterParaPendente={handleReverterParaPendente}
         onDelete={handleOpenDelete}
         onBaixarAnexo={baixarAnexo}
       />

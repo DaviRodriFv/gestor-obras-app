@@ -58,6 +58,11 @@ export default function ObrasPage() {
     setShowEdit(true);
   }
 
+  function handleEditObra(obra) {
+    setSelectedObra(obra);
+    setShowEdit(true);
+  }
+
   function handleOpenAlterarStatus() {
     setShowDetails(false);
     setShowAlterarStatus(true);
@@ -158,7 +163,7 @@ export default function ObrasPage() {
               </p>
             </div>
           ) : (
-            <ObrasTable obras={obras} onSelect={handleSelectObra} />
+            <ObrasTable obras={obras} onSelect={handleSelectObra} onEdit={handleEditObra} />
           )}
         </CardContent>
       </Card>

@@ -11,6 +11,7 @@ import { Button } from "../ui/button";
 import { Input } from "../ui/input";
 import { Label } from "../ui/label";
 import { Select } from "../ui/select";
+import { maskTelefone } from "../../utils/format";
 
 const EMPTY_FORM = {
   nome: "",
@@ -127,7 +128,7 @@ export default function FornecedorFormModal({ open, fornecedor, onClose, onSave 
                 id="telefone"
                 placeholder="(00) 00000-0000"
                 value={form.telefone}
-                onChange={(e) => setField("telefone", e.target.value)}
+                onChange={(e) => setField("telefone", maskTelefone(e.target.value))}
               />
               {errors.telefone && <p className="text-xs text-destructive">{errors.telefone}</p>}
             </div>

@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Pencil, Trash2, CheckCircle2, XCircle, Loader2, Download } from "lucide-react";
+import { Pencil, Trash2, CheckCircle2, XCircle, Loader2, Download, Undo2 } from "lucide-react";
 import { formatDate, formatCurrency, CATEGORIA_CUSTO_LABELS } from "../../utils/format";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "../ui/dialog";
 import { Button } from "../ui/button";
@@ -21,6 +21,7 @@ export default function CustoDetailsModal({
   onEdit,
   onRegistrarPagamento,
   onCancelar,
+  onReverterParaPendente,
   onDelete,
   onBaixarAnexo,
 }) {
@@ -57,6 +58,15 @@ export default function CustoDetailsModal({
     setActioning(true);
     try {
       await onCancelar();
+    } finally {
+      setActioning(false);
+    }
+  }
+
+  async function handleReverter() {
+    setActioning(true);
+    try {
+      await onReverterParaPendente();
     } finally {
       setActioning(false);
     }
@@ -143,6 +153,23 @@ export default function CustoDetailsModal({
                 Cancelar Lançamento
               </Button>
             </>
+          )}
+
+          {!isPendente && (
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleReverter}
+              disabled={actioning}
+              className="flex items-center gap-1.5"
+            >
+              {actioning ? (
+                <Loader2 className="w-3.5 h-3.5 animate-spin" />
+              ) : (
+                <Undo2 className="w-3.5 h-3.5" />
+              )}
+              Reverter para Pendente
+            </Button>
           )}
 
           <Button

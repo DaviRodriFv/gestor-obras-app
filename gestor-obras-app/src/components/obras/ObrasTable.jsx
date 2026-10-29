@@ -1,5 +1,7 @@
+import { Pencil } from "lucide-react";
 import { formatDate } from "../../utils/format";
 import StatusBadge from "./StatusBadge";
+import { Button } from "../ui/button";
 import {
   Table,
   TableBody,
@@ -9,7 +11,7 @@ import {
   TableRow,
 } from "../ui/table";
 
-export default function ObrasTable({ obras, onSelect }) {
+export default function ObrasTable({ obras, onSelect, onEdit }) {
   return (
     <Table>
       <TableHeader>
@@ -20,6 +22,7 @@ export default function ObrasTable({ obras, onSelect }) {
           <TableHead>Data Início</TableHead>
           <TableHead>Prazo</TableHead>
           <TableHead>Status</TableHead>
+          <TableHead className="text-right">Ações</TableHead>
         </TableRow>
       </TableHeader>
       <TableBody>
@@ -36,6 +39,20 @@ export default function ObrasTable({ obras, onSelect }) {
             <TableCell className="text-muted-foreground">{formatDate(obra.prazoConclusao)}</TableCell>
             <TableCell>
               <StatusBadge status={obra.status} />
+            </TableCell>
+            <TableCell className="text-right">
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-8 w-8"
+                title="Editar obra"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onEdit(obra);
+                }}
+              >
+                <Pencil className="w-4 h-4" />
+              </Button>
             </TableCell>
           </TableRow>
         ))}

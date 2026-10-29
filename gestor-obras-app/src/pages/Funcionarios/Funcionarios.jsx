@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { UserPlus, Pencil, Trash2, Users, Loader2 } from "lucide-react";
+import { UserPlus, Pencil, Trash2, Users, Loader2, Eye, EyeOff } from "lucide-react";
 import { Button } from "../../components/ui/button";
 import { Input } from "../../components/ui/input";
 import { Label } from "../../components/ui/label";
@@ -28,6 +28,7 @@ import {
   CardDescription,
 } from "../../components/ui/card";
 import { useFuncionarios } from "../../hooks/useFuncionarios";
+import { maskTelefone } from "../../utils/format";
 
 const ROLES = [
   { value: "ADMINISTRADOR", label: "Administrador" },
@@ -94,6 +95,8 @@ export default function Funcionarios() {
   const [fieldErrors, setFieldErrors] = useState({});
   const [formError, setFormError] = useState("");
   const [saving, setSaving] = useState(false);
+  const [mostrarSenha, setMostrarSenha] = useState(false);
+  const [mostrarConfirmarSenha, setMostrarConfirmarSenha] = useState(false);
 
   function setField(field, value) {
     setForm((f) => ({ ...f, [field]: value }));
@@ -105,6 +108,8 @@ export default function Funcionarios() {
     setEditingId(null);
     setFieldErrors({});
     setFormError("");
+    setMostrarSenha(false);
+    setMostrarConfirmarSenha(false);
     setDialogOpen(true);
   }
 
@@ -121,6 +126,8 @@ export default function Funcionarios() {
     setEditingId(func.id);
     setFieldErrors({});
     setFormError("");
+    setMostrarSenha(false);
+    setMostrarConfirmarSenha(false);
     setDialogOpen(true);
   }
 
@@ -319,13 +326,25 @@ export default function Funcionarios() {
                   </span>
                 )}
               </Label>
-              <Input
-                id="senha"
-                type="password"
-                placeholder="••••••••"
-                value={form.senha}
-                onChange={(e) => setField("senha", e.target.value)}
-              />
+              <div className="relative">
+                <Input
+                  id="senha"
+                  type={mostrarSenha ? "text" : "password"}
+                  placeholder="••••••••"
+                  value={form.senha}
+                  onChange={(e) => setField("senha", e.target.value)}
+                  className="pr-10"
+                />
+                <button
+                  type="button"
+                  onClick={() => setMostrarSenha((v) => !v)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+                  tabIndex={-1}
+                  title={mostrarSenha ? "Ocultar senha" : "Mostrar senha"}
+                >
+                  {mostrarSenha ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                </button>
+              </div>
               {fieldErrors.senha && (
                 <p className="text-xs text-destructive">{fieldErrors.senha}</p>
               )}
@@ -334,13 +353,25 @@ export default function Funcionarios() {
             {/* Confirmar Senha — sempre visível */}
             <div className="flex flex-col gap-1.5">
               <Label htmlFor="confirmarSenha">Confirmar Senha {!isEdit && <span className="text-destructive">*</span>}</Label>
-              <Input
-                id="confirmarSenha"
-                type="password"
-                placeholder="••••••••"
-                value={form.confirmarSenha}
-                onChange={(e) => setField("confirmarSenha", e.target.value)}
-              />
+              <div className="relative">
+                <Input
+                  id="confirmarSenha"
+                  type={mostrarConfirmarSenha ? "text" : "password"}
+                  placeholder="••••••••"
+                  value={form.confirmarSenha}
+                  onChange={(e) => setField("confirmarSenha", e.target.value)}
+                  className="pr-10"
+                />
+                <button
+                  type="button"
+                  onClick={() => setMostrarConfirmarSenha((v) => !v)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+                  tabIndex={-1}
+                  title={mostrarConfirmarSenha ? "Ocultar senha" : "Mostrar senha"}
+                >
+                  {mostrarConfirmarSenha ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                </button>
+              </div>
               {fieldErrors.confirmarSenha && (
                 <p className="text-xs text-destructive">{fieldErrors.confirmarSenha}</p>
               )}
@@ -353,7 +384,7 @@ export default function Funcionarios() {
                 id="telefone"
                 placeholder="(00) 00000-0000"
                 value={form.telefone}
-                onChange={(e) => setField("telefone", e.target.value)}
+                onChange={(e) => setField("telefone", maskTelefone(e.target.value))}
               />
             </div>
 
