@@ -27,7 +27,9 @@ import {
   CardTitle,
   CardDescription,
 } from "../../components/ui/card";
+import { Pagination } from "../../components/ui/pagination";
 import { useFuncionarios } from "../../hooks/useFuncionarios";
+import { usePagination } from "../../hooks/usePagination";
 import { maskTelefone } from "../../utils/format";
 
 const ROLES = [
@@ -86,6 +88,7 @@ function parseApiError(err) {
 
 export default function Funcionarios() {
   const { funcionarios, loading, error, criar, atualizar, deletar } = useFuncionarios();
+  const { pageItems, setPage, ...paginacao } = usePagination(funcionarios);
 
   const [dialogOpen, setDialogOpen] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
@@ -223,57 +226,60 @@ export default function Funcionarios() {
               <p className="text-sm">Nenhum funcionário cadastrado.</p>
             </div>
           ) : (
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Nome</TableHead>
-                  <TableHead>E-mail</TableHead>
-                  <TableHead>Telefone</TableHead>
-                  <TableHead>Cargo</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead className="text-right">Ações</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {funcionarios.map((func) => (
-                  <TableRow key={func.id}>
-                    <TableCell className="font-medium">{func.nome}</TableCell>
-                    <TableCell className="text-muted-foreground">{func.email}</TableCell>
-                    <TableCell className="text-muted-foreground">{func.telefone || "—"}</TableCell>
-                    <TableCell>
-                      <Badge variant={func.cargo === "ADMINISTRADOR" ? "default" : "secondary"}>
-                        {func.cargo === "ADMINISTRADOR" ? "Administrador" : "Equipe"}
-                      </Badge>
-                    </TableCell>
-                    <TableCell>
-                      <Badge variant={func.ativo ? "default" : "outline"}>
-                        {func.ativo ? "Ativo" : "Inativo"}
-                      </Badge>
-                    </TableCell>
-                    <TableCell className="text-right">
-                      <div className="flex items-center justify-end gap-2">
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          onClick={() => openEdit(func)}
-                          className="h-8 w-8"
-                        >
-                          <Pencil className="w-4 h-4" />
-                        </Button>
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          onClick={() => openDelete(func.id)}
-                          className="h-8 w-8 text-destructive hover:text-destructive hover:bg-destructive/10"
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </Button>
-                      </div>
-                    </TableCell>
+            <>
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Nome</TableHead>
+                    <TableHead>E-mail</TableHead>
+                    <TableHead>Telefone</TableHead>
+                    <TableHead>Cargo</TableHead>
+                    <TableHead>Status</TableHead>
+                    <TableHead className="text-right">Ações</TableHead>
                   </TableRow>
-                ))}
-              </TableBody>
-            </Table>
+                </TableHeader>
+                <TableBody>
+                  {pageItems.map((func) => (
+                    <TableRow key={func.id}>
+                      <TableCell className="font-medium">{func.nome}</TableCell>
+                      <TableCell className="text-muted-foreground">{func.email}</TableCell>
+                      <TableCell className="text-muted-foreground">{func.telefone || "—"}</TableCell>
+                      <TableCell>
+                        <Badge variant={func.cargo === "ADMINISTRADOR" ? "default" : "secondary"}>
+                          {func.cargo === "ADMINISTRADOR" ? "Administrador" : "Equipe"}
+                        </Badge>
+                      </TableCell>
+                      <TableCell>
+                        <Badge variant={func.ativo ? "default" : "outline"}>
+                          {func.ativo ? "Ativo" : "Inativo"}
+                        </Badge>
+                      </TableCell>
+                      <TableCell className="text-right">
+                        <div className="flex items-center justify-end gap-2">
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => openEdit(func)}
+                            className="h-8 w-8"
+                          >
+                            <Pencil className="w-4 h-4" />
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => openDelete(func.id)}
+                            className="h-8 w-8 text-destructive hover:text-destructive hover:bg-destructive/10"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </Button>
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+              <Pagination {...paginacao} onPageChange={setPage} />
+            </>
           )}
         </CardContent>
       </Card>

@@ -19,9 +19,11 @@ import { dashboardService } from "../../services/dashboardService";
 import { authService } from "../../services/authService";
 import { Button } from "../../components/ui/button";
 import { Card, CardContent } from "../../components/ui/card";
+import { Pagination } from "../../components/ui/pagination";
 import StatusBadge from "../../components/obras/StatusBadge";
 import SituacaoBadge from "../../components/financeiro/SituacaoBadge";
 import { formatDate } from "../../utils/format";
+import { usePagination } from "../../hooks/usePagination";
 
 const ADMIN = ["ADMINISTRADOR"];
 const TODOS = ["ADMINISTRADOR", "EQUIPE"];
@@ -131,6 +133,8 @@ export default function Dashboard() {
       ? dashboard.obras
       : dashboard.obras.filter((o) => o.status === "EM_ANDAMENTO" || o.status === "PAUSADA");
   }, [dashboard, mostrarEncerradas]);
+
+  const { pageItems: obrasPagina, setPage, ...paginacao } = usePagination(obrasVisiveis);
 
   const alertas = useMemo(() => (dashboard ? montarAlertas(dashboard.obras) : []), [dashboard]);
   const atalhos = ATALHOS.filter((a) => a.roles.includes(user?.cargo));
@@ -303,7 +307,7 @@ export default function Dashboard() {
                         </tr>
                       </thead>
                       <tbody>
-                        {obrasVisiveis.map((obra) => (
+                        {obrasPagina.map((obra) => (
                           <tr
                             key={obra.id}
                             onClick={() => navigate(`/cronograma?obra=${obra.id}`)}
@@ -350,6 +354,7 @@ export default function Dashboard() {
                         ))}
                       </tbody>
                     </table>
+                    <Pagination {...paginacao} onPageChange={setPage} className="px-0" />
                   </div>
                 )}
               </CardContent>
